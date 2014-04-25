@@ -79,29 +79,12 @@ public class MySqlMaxPersistentStorage extends MySqlStorage implements Storage {
 			stmt = conn.prepareStatement(RATING_DECAY);
 			stmt.setFloat(1, ratingDecay);
 			stmt.execute();
-			stmt2 = conn.prepareStatement("set global  event_scheduler = on");
-			stmt2.execute();
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} finally {
 		      IOUtils.quietClose(stmt);
 		      IOUtils.quietClose(stmt2);
-		      IOUtils.quietClose(conn);
-		}
-	 }else{
-		 Connection conn = null;
-		 PreparedStatement stmt = null;
-		 
-		 try {
-			conn = dataSource.getConnection();
-			stmt = conn.prepareStatement("set global  event_scheduler = off");
-			stmt.execute();
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} finally {
-		      IOUtils.quietClose(stmt);
 		      IOUtils.quietClose(conn);
 		}
 	 }
