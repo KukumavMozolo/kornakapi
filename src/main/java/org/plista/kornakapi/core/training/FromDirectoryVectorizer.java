@@ -17,7 +17,9 @@
 package org.plista.kornakapi.core.training;
 
 import com.google.common.collect.Lists;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.util.ToolRunner;
 import org.apache.mahout.text.SequenceFilesFromDirectory;
 import org.apache.mahout.utils.vectors.RowIdJob;
@@ -82,6 +84,16 @@ public class FromDirectoryVectorizer {
 	 * @throws Exception
 	 */
     private void generateSparseVectors (boolean tfWeighting,  boolean named, double maxDFSigma, Path inputPath, Path outputPath) throws Exception {
+        Configuration hdoopConf = new Configuration();
+        hdoopConf.set("fs.defaultFS", "hdfs://192.168.2.233:9000");
+        hdoopConf.set("yarn.resourcemanager.hostname", "192.168.2.233");
+        hdoopConf.set("mapreduce.framework.name", "yarn");
+        hdoopConf.set("mapred.framework.name", "yarn");
+        hdoopConf.set("mapred.job.tracker", "192.168.2.233:8032");
+
+        System.setProperty("HADOOP_USER_NAME", "mw");
+        UserGroupInformation ugi = UserGroupInformation.createRemoteUser("jp");
+
         List<String> argList = Lists.newLinkedList();
         argList.add("-i");
         argList.add(inputPath.toString());
@@ -104,7 +116,7 @@ public class FromDirectoryVectorizer {
         }
         String[] args = argList.toArray(new String[argList.size()]);
         //String[] seqToVectorArgs = {"--weight", "tfidf", "--input", inputPath.toString(), "--output",  outputPath.toString(), "--maxDFPercent", "70", "--maxNGramSize", "2", "--namedVector"};
-        ToolRunner.run(new SparseVectorsFromSequenceFiles(), args);
+        ToolRunner.run(hdoopConf, new SparseVectorsFromSequenceFiles(), args);
     }
     
     /**

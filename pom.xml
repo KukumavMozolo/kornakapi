@@ -10,13 +10,14 @@
   <packaging>war</packaging>
 
   <repositories>
-    <repository>
-      <id>apache</id>
-      <url>https://repository.apache.org/content/groups/public/</url>
-      <snapshots>
-        <enabled>true</enabled>
-      </snapshots>
-    </repository>
+      <repository>
+          <id>project.local</id>
+          <name>project</name>
+          <url>file:/usr/share/external-plista/mahout/integration/target</url>
+          <snapshots>
+              <enabled>true</enabled>
+          </snapshots>
+      </repository>
   </repositories>
 
 
@@ -24,7 +25,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <org.springframework.version>3.1.2.RELEASE</org.springframework.version>
     <org.slf4j.version>1.6.1</org.slf4j.version>
-    <org.apache.mahout.version>0.9</org.apache.mahout.version>
+    <org.apache.mahout.version>1.0-SNAPSHOT</org.apache.mahout.version>
     <tomcat.version>6.0.29</tomcat.version>
   </properties>
 
@@ -32,7 +33,7 @@
 
     <dependency>
       <groupId>org.apache.mahout</groupId>
-      <artifactId>mahout-core</artifactId>
+      <artifactId>mahout-mrlegacy</artifactId>
       <version>${org.apache.mahout.version}</version>
     </dependency>
 
@@ -92,6 +93,12 @@
       <version>2.2</version>
     </dependency>
 
+      <dependency>
+          <groupId>commons-lang</groupId>
+          <artifactId>commons-lang</artifactId>
+          <version>2.6</version>
+      </dependency>
+
     <dependency>
       <groupId>commons-fileupload</groupId>
       <artifactId>commons-fileupload</artifactId>
@@ -104,7 +111,16 @@
       </exclusions>
     </dependency>
 
-    <dependency>
+      <dependency>
+          <groupId>javax.servlet</groupId>
+          <artifactId>javax.servlet-api</artifactId>
+          <version>3.0.1</version>
+          <scope>provided</scope>
+      </dependency>
+
+
+
+      <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
       <version>${org.slf4j.version}</version>
@@ -126,13 +142,6 @@
       <artifactId>log4j</artifactId>
       <version>1.2.16</version>
       <scope>runtime</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>javax.servlet</groupId>
-      <artifactId>servlet-api</artifactId>
-      <version>2.5</version>
-      <scope>provided</scope>
     </dependency>
 
     <dependency>

@@ -24,23 +24,20 @@ import org.apache.mahout.cf.taste.impl.recommender.svd.PersistenceStrategy;
 import org.apache.mahout.cf.taste.model.DataModel;
 import org.apache.mahout.cf.taste.recommender.CandidateItemsStrategy;
 import org.plista.kornakapi.KornakapiRecommender;
-
+import org.plista.kornakapi.core.config.Configuration;
+import org.plista.kornakapi.core.config.FactorizationbasedRecommenderConfig;
+import org.plista.kornakapi.core.config.RecommenderConfig;
 import org.plista.kornakapi.core.recommender.CachingAllUnknownItemsCandidateItemsStrategy;
 import org.plista.kornakapi.core.recommender.FoldingFactorizationBasedRecommender;
 import org.plista.kornakapi.core.storage.CandidateCacheStorageDecorator;
 import org.plista.kornakapi.core.storage.MySqlMaxPersistentStorage;
 import org.plista.kornakapi.core.storage.MySqlStorage;
 import org.plista.kornakapi.core.training.FactorizationbasedInMemoryTrainer;
+import org.plista.kornakapi.core.training.TaskScheduler;
 import org.plista.kornakapi.core.training.Trainer;
 import org.plista.kornakapi.core.training.preferencechanges.DelegatingPreferenceChangeListenerForLabel;
 import org.plista.kornakapi.core.training.preferencechanges.InMemoryPreferenceChangeListener;
-import org.plista.kornakapi.core.storage.Storage;
-import org.plista.kornakapi.core.training.TaskScheduler;
-import org.plista.kornakapi.core.training.preferencechanges.PreferenceChangeListener;
 import org.plista.kornakapi.web.Components;
-import org.plista.kornakapi.core.config.Configuration;
-import org.plista.kornakapi.core.config.FactorizationbasedRecommenderConfig;
-import org.plista.kornakapi.core.config.RecommenderConfig;
 import org.plista.kornakapi.web.InvalidParameterException;
 import org.plista.kornakapi.web.MissingParameterException;
 import org.quartz.SchedulerException;
@@ -49,7 +46,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;

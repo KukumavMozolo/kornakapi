@@ -1,12 +1,5 @@
 package org.plista.kornakapi.core.recommender;
 
-import java.io.IOException;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.concurrent.Callable;
-
 import org.apache.hadoop.fs.Path;
 import org.apache.mahout.cf.taste.common.NoSuchItemException;
 import org.apache.mahout.cf.taste.common.Refreshable;
@@ -25,6 +18,11 @@ import org.apache.mahout.math.Vector;
 import org.plista.kornakapi.KornakapiRecommender;
 import org.plista.kornakapi.core.config.LDARecommenderConfig;
 import org.plista.kornakapi.core.training.SemanticModel;
+
+import java.io.IOException;
+import java.util.Collection;
+import java.util.List;
+import java.util.concurrent.Callable;
 
 
 
@@ -55,20 +53,20 @@ public class LDATopicRecommender extends AbstractRecommender implements Kornakap
 		    refreshHelper.addDependency(getDataModel());
 		    refreshHelper.addDependency(allUnknownItemsStrategy);
 			  }
-		
-	
 
-	@Override
-	public List<RecommendedItem> recommendToAnonymous(long[] itemIDs,
-			int howMany, IDRescorer rescorer) throws TasteException, NoSuchItemException {
-		Long itemId = itemIDs[0];
-	    Vector itemFeature = model.getItemFeatures(itemId.toString());
-	    PreferenceArray preferences = asPreferences(itemIDs);
-	    FastIDSet possibleItemIDs =  getAllOtherItems(Long.MIN_VALUE, preferences);
 
-		List<RecommendedItem> topItems = TopItems.getTopItems(howMany, possibleItemIDs.iterator(), rescorer, new SemanticEstimator(itemFeature));
-		return topItems;
-	}
+
+    @Override
+    public List<RecommendedItem> recommendToAnonymous(long[] itemIDs,
+                                                      int howMany, IDRescorer rescorer) throws TasteException, NoSuchItemException {
+        Long itemId = itemIDs[0];
+        Vector itemFeature = model.getItemFeatures(itemId.toString());
+        PreferenceArray preferences = asPreferences(itemIDs);
+        FastIDSet possibleItemIDs =  getAllOtherItems(Long.MIN_VALUE, preferences, false);
+        List<RecommendedItem> topItems = TopItems.getTopItems(howMany, possibleItemIDs.iterator(), rescorer, new SemanticEstimator(itemFeature));
+        return topItems;
+    }
+
     private float semanticPreference(Vector currentFeatures, Long itemID){
     	Vector v;
 		try {
@@ -116,7 +114,12 @@ public class LDATopicRecommender extends AbstractRecommender implements Kornakap
 		return null;
 	}
 
-	@Override
+    @Override
+    public List<RecommendedItem> recommend(long userID, int howMany, IDRescorer rescorer, boolean includeKnownItems) throws TasteException {
+        return null;
+    }
+
+    @Override
 	public float estimatePreference(long userID, long itemID)
 			throws TasteException {
 		// TODO Auto-generated method stub

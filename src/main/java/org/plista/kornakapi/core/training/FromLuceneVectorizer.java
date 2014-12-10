@@ -17,10 +17,7 @@
 package org.plista.kornakapi.core.training;
 
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
+import com.google.common.collect.Lists;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.util.ToolRunner;
@@ -31,7 +28,8 @@ import org.apache.mahout.vectorizer.SparseVectorsFromSequenceFiles;
 import org.plista.kornakapi.core.config.LDARecommenderConfig;
 import org.plista.kornakapi.core.config.RecommenderConfig;
 
-import com.google.common.collect.Lists;
+import java.util.ArrayList;
+import java.util.List;
 
 public class FromLuceneVectorizer{
 	
@@ -53,9 +51,7 @@ public class FromLuceneVectorizer{
 		sparseVectorInputPath = new Path(((LDARecommenderConfig)conf).getCVBInputPath());
 		Configuration config = new Configuration();				
 	    //not sure what id, name, text should be, evl name~ title, text~text_full, id~itemid//
-        luceneStorageConf = new LuceneStorageConfiguration(config, 
-                Arrays.asList(indexFilesPath), sequenceFilesPath, "itemid",
-                Arrays.asList("itemid","title"));
+
 
 	}
 

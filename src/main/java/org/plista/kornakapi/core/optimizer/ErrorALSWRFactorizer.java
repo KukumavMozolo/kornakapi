@@ -18,7 +18,6 @@
 package org.plista.kornakapi.core.optimizer;
 
 import com.google.common.collect.Lists;
-
 import org.apache.mahout.cf.taste.common.TasteException;
 import org.apache.mahout.cf.taste.impl.common.FastByIDMap;
 import org.apache.mahout.cf.taste.impl.common.FullRunningAverage;
@@ -35,12 +34,11 @@ import org.apache.mahout.math.SequentialAccessSparseVector;
 import org.apache.mahout.math.Vector;
 import org.apache.mahout.math.als.AlternatingLeastSquaresSolver;
 import org.apache.mahout.math.als.ImplicitFeedbackAlternatingLeastSquaresSolver;
+import org.apache.mahout.math.map.OpenIntObjectHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.apache.mahout.math.map.OpenIntObjectHashMap;
 
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -76,7 +74,8 @@ public class ErrorALSWRFactorizer extends AbstractFactorizer {
 
   private static final Logger log = LoggerFactory.getLogger(ErrorALSWRFactorizer.class);
 
-  public ErrorALSWRFactorizer(DataModel dataModel, DataModel testModel, int numFeatures, double lambda, int numIterations,
+
+    public ErrorALSWRFactorizer(DataModel dataModel, DataModel testModel, int numFeatures, double lambda, int numIterations,
       boolean usesImplicitFeedback, double alpha, int numTrainingThreads) throws TasteException {
     super(dataModel);
     this.dataModel = dataModel;
@@ -177,6 +176,7 @@ public class ErrorALSWRFactorizer extends AbstractFactorizer {
       userY = userFeaturesMapping(dataModel.getUserIDs(), dataModel.getNumUsers(), features.getU());
       itemY = itemFeaturesMapping(dataModel.getItemIDs(), dataModel.getNumItems(), features.getM());
     }
+    Set interSectingUsers = getIntersectingUsers(dataModel.getUserIDs(), testModel.getUserIDs());
 
     Double[] errors = new Double[numIterations];
     for (int iteration = 0; iteration < numIterations; iteration++) {
@@ -190,7 +190,7 @@ public class ErrorALSWRFactorizer extends AbstractFactorizer {
       try {
 
         final ImplicitFeedbackAlternatingLeastSquaresSolver implicitFeedbackSolver = usesImplicitFeedback
-            ? new ImplicitFeedbackAlternatingLeastSquaresSolver(numFeatures, lambda, alpha, itemY) : null;
+            ? new ImplicitFeedbackAlternatingLeastSquaresSolver(numFeatures, lambda, alpha, itemY,5) : null;
 
 
         while (userIDsIterator.hasNext()) {
@@ -240,7 +240,7 @@ public class ErrorALSWRFactorizer extends AbstractFactorizer {
 
       try {
         	final ImplicitFeedbackAlternatingLeastSquaresSolver implicitFeedbackSolver = usesImplicitFeedback
-      	            ? new ImplicitFeedbackAlternatingLeastSquaresSolver(numFeatures, lambda, alpha, userY) : null;
+      	            ? new ImplicitFeedbackAlternatingLeastSquaresSolver(numFeatures, lambda, alpha, userY,5) : null;
       		if(usesImplicitFeedback){
 
 
@@ -285,10 +285,12 @@ public class ErrorALSWRFactorizer extends AbstractFactorizer {
           log.warn("Error when computing item features", e);
         }
       }
-	  userIDsIterator = testModel.getUserIDs();
+
       double error = 0;
-      while (userIDsIterator.hasNext()) {
-    	  Long userID = userIDsIterator.next();
+      int samples = 0;
+      Iterator intersectingUserIterator = interSectingUsers.iterator();
+      while (intersectingUserIterator.hasNext()) {
+    	  Long userID = (Long)intersectingUserIterator.next();
     	  PreferenceArray userPrefs = testModel.getPreferencesFromUser(userID);
     	  Vector userf = features.getUserFeatureColumn(userIndex(userID));
     	  long[] itemIDs = userPrefs.getIDs();
@@ -298,10 +300,12 @@ public class ErrorALSWRFactorizer extends AbstractFactorizer {
     		  double pref = itemf.dot(userf);
     		  double realpref = userPrefs.getValue(idx);
     		  idx++;
-    		  error = error + Math.abs(pref - realpref);    		  
+              double delta = (pref - realpref);
+    		  error = error + (delta)*(delta);
+              samples ++;
     	  }	  
       }
-      errors[iteration] = error;
+      errors[iteration] = error/samples;
       
   
     }
@@ -310,7 +314,29 @@ public class ErrorALSWRFactorizer extends AbstractFactorizer {
     return factorization;
   }
 
-  protected ExecutorService createQueue() {
+    /**
+     * Creates the intersection of both sets. Needed since we can just predict something meaningfull to a user
+     * if we have some information about the users preferences
+     * @param userIDsIterator
+     * @param TraininguserIDsIterator
+     * @return
+     */
+    public Set<Long> getIntersectingUsers(LongPrimitiveIterator userIDsIterator, LongPrimitiveIterator TraininguserIDsIterator) {
+        HashSet<Long> testUserIds= new HashSet<Long>();
+        HashSet<Long> intersectingUsers= new HashSet<Long>();
+        while(userIDsIterator.hasNext()){
+            testUserIds.add(userIDsIterator.next());
+        }
+        while(TraininguserIDsIterator.hasNext()){
+            Long userid = TraininguserIDsIterator.next();
+            if(testUserIds.contains(userid)){
+                intersectingUsers.add(userid);
+            }
+        }
+        return intersectingUsers;
+    }
+
+    protected ExecutorService createQueue() {
     return Executors.newFixedThreadPool(numTrainingThreads);
   }
 

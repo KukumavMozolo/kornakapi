@@ -1,10 +1,6 @@
 package org.plista.kornakapi.core.recommender;
 
-import java.io.IOException;
-import java.util.Collection;
-
-import java.util.List;
-
+import com.google.common.collect.Lists;
 import org.apache.mahout.cf.taste.common.NoSuchItemException;
 import org.apache.mahout.cf.taste.common.Refreshable;
 import org.apache.mahout.cf.taste.common.TasteException;
@@ -18,7 +14,9 @@ import org.plista.kornakapi.core.cluster.StreamingKMeansClassifierModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.collect.Lists;
+import java.io.IOException;
+import java.util.Collection;
+import java.util.List;
 
 public class StreamingKMeansClassifierRecommender implements KornakapiRecommender{
 	
@@ -38,14 +36,24 @@ public class StreamingKMeansClassifierRecommender implements KornakapiRecommende
 		return null;
 	}
 
-	@Override
+    @Override
+    public List<RecommendedItem> recommend(long userID, int howMany, boolean includeKnownItems) throws TasteException {
+        return null;
+    }
+
+    @Override
 	public List<RecommendedItem> recommend(long userID, int howMany,
 			IDRescorer rescorer) throws TasteException {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
-	@Override
+    @Override
+    public List<RecommendedItem> recommend(long userID, int howMany, IDRescorer rescorer, boolean includeKnownItems) throws TasteException {
+        return null;
+    }
+
+    @Override
 	public float estimatePreference(long userID, long itemID)
 			throws TasteException {
 		// TODO Auto-generated method stub

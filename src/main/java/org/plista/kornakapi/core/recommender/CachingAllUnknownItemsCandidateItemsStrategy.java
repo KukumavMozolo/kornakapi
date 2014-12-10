@@ -40,7 +40,7 @@ public class CachingAllUnknownItemsCandidateItemsStrategy implements CandidateIt
     allItemIDs = loadAllItemIDs(dataModel);
   }
 
-  @Override
+
   public FastIDSet getCandidateItems(long userID, PreferenceArray preferencesFromUser, DataModel dataModel)
       throws TasteException {
     FastIDSet possibleItemIDs = allItemIDs.clone();
@@ -70,4 +70,9 @@ public class CachingAllUnknownItemsCandidateItemsStrategy implements CandidateIt
       throw new RuntimeException("Unable to reload itemIDs from DataModel", e);
     }
   }
+
+    @Override
+    public FastIDSet getCandidateItems(long userID, PreferenceArray preferencesFromUser, DataModel dataModel, boolean includeKnownItems) throws TasteException {
+        return null;
+    }
 }

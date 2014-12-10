@@ -106,7 +106,12 @@ public final class FoldingFactorizationBasedRecommender extends AbstractRecommen
 		return recommend(userID, preferencesFromUser.getIDs(), howMany, rescorer);
 	}
 
-  @Override
+    @Override
+    public List<RecommendedItem> recommend(long userID, int howMany, IDRescorer rescorer, boolean includeKnownItems) throws TasteException {
+        return null;
+    }
+
+    @Override
   public List<RecommendedItem> recommend(long userID, long[] itemIDs, int howMany, IDRescorer rescorer) throws TasteException {
     Preconditions.checkArgument(howMany >= 1, "howMany must be at least 1");
     log.debug("Recommending items for user ID '{}'", userID);
@@ -114,7 +119,7 @@ public final class FoldingFactorizationBasedRecommender extends AbstractRecommen
     PreferenceArray preferencesFromUser = asPreferences(itemIDs);
       
     long fetchItemIDsStart = System.currentTimeMillis();
-    FastIDSet possibleItemIDs = getAllOtherItems(userID, preferencesFromUser);
+    FastIDSet possibleItemIDs = getAllOtherItems(userID, preferencesFromUser,false);
     long fetchItemIDsDuration = System.currentTimeMillis() - fetchItemIDsStart;
 
     long estimateStart = System.currentTimeMillis();
@@ -175,7 +180,7 @@ public final class FoldingFactorizationBasedRecommender extends AbstractRecommen
     long estimateStart = System.currentTimeMillis();
     double[] foldedInUserFeatures = foldingFactorization.foldInAnonymousUser(itemIDs);
 
-    FastIDSet possibleItemIDs = getAllOtherItems(Long.MIN_VALUE, preferences);
+    FastIDSet possibleItemIDs = getAllOtherItems(Long.MIN_VALUE, preferences,false);
     List<RecommendedItem> topItems;
  
     if (numEstimationThreads > 1) {
