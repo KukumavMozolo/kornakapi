@@ -35,6 +35,20 @@
       <groupId>org.apache.mahout</groupId>
       <artifactId>mahout-mrlegacy</artifactId>
       <version>${org.apache.mahout.version}</version>
+      <exclusions>
+        <exclusion>
+            <groupId>org.glassfish</groupId>
+            <artifactId>*</artifactId>
+        </exclusion>
+          <exclusion>
+              <groupId>org.glassfish.grizzly</groupId>
+              <artifactId>*</artifactId>
+          </exclusion>
+         <exclusion>
+             <groupId>javax.servlet</groupId>
+             <artifactId>javax.servlet-api</artifactId>
+         </exclusion>
+      </exclusions>
     </dependency>
 
     <dependency>
@@ -113,8 +127,8 @@
 
       <dependency>
           <groupId>javax.servlet</groupId>
-          <artifactId>javax.servlet-api</artifactId>
-          <version>3.0.1</version>
+          <artifactId>servlet-api</artifactId>
+          <version>2.5</version>
           <scope>provided</scope>
       </dependency>
 

@@ -18,20 +18,24 @@ package org.plista.kornakapi.core.training;
 
 import com.google.common.collect.Lists;
 import com.google.common.io.Closeables;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.SequenceFile;
 import org.apache.hadoop.io.SequenceFile.Reader;
 import org.apache.hadoop.io.Text;
+import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.mahout.cf.taste.common.TasteException;
-import org.apache.mahout.clustering.lda.cvb.InMemoryCollapsedVariationalBayes0;
+import org.apache.mahout.clustering.lda.cvb.CVB0Driver;
 import org.apache.mahout.math.Vector;
 import org.apache.mahout.math.VectorWritable;
 import org.plista.kornakapi.core.config.LDARecommenderConfig;
 import org.plista.kornakapi.core.config.RecommenderConfig;
 
 import java.io.IOException;
+import java.security.PrivilegedExceptionAction;
 import java.util.HashMap;
 import java.util.List;
 
@@ -42,20 +46,18 @@ import java.util.List;
  */
 public class LDATopicFactorizer{
 	
-	/**
+
     private double doc_topic_smoothening = 0.0001;
     private double term_topic_smoothening = 0.0001;
-    private int maxIter = 5;
     private int iteration_block_size = 10;
-    private double convergenceDelta = 0;
-    private float testFraction = 0.5f;
+    private float testFraction = 0.1f;
     private int numTrainThreads = 4;
     private int numUpdateThreads = 1;
     private int maxItersPerDoc = 10;
     private int numReduceTasks = 10;
     private boolean backfillPerplexity = false;
-    private int seed = (int) Math.random() * 3021;
-	**/
+    private int seed = (int) Math.random() * 302221;
+
 	
     private Path sparseVectorIn;
 	private Path topicsOut;
@@ -78,8 +80,8 @@ public class LDATopicFactorizer{
 	 */
 	protected LDATopicFactorizer(RecommenderConfig conf) throws TasteException, IOException {
 		this.conf = (LDARecommenderConfig)conf;
-		sparseVectorIn= new Path(this.conf.getCVBInputPath());
-		topicsOut= new Path(this.conf.getTopicsOutputPath());
+		sparseVectorIn= new Path(this.conf.getYarnInputDir());
+		topicsOut= new Path(this.conf.getYarnOutputDir());
 		k= new Integer(this.conf.getnumberOfTopics());
         fs = FileSystem.get(lconf);
         this.alpha = this.conf.getAlpha();
@@ -154,6 +156,19 @@ public class LDATopicFactorizer{
 	 * @throws TasteException
 	 */
 	public SemanticModel factorize() throws TasteException, IOException {
+        /**			//MapReduce
+         CVB0Driver driver = new CVB0Driver();
+         Configuration jobConf = new Configuration();
+         driver.run(jobConf, sparseVectorIn.suffix("/matrix"),
+         topicsOut, k, 2000, doc_topic_smoothening, term_topic_smoothening,
+         maxIter, iteration_block_size, convergenceDelta,
+         new Path(((LDARecommenderConfig)conf).getTopicsDictionaryPath()), new Path(((LDARecommenderConfig)conf).getLDADocTopicsPath()), new Path(((LDARecommenderConfig)conf).getTmpLDAModelPath()),
+         seed, testFraction, numTrainThreads, numUpdateThreads, maxItersPerDoc,
+         numReduceTasks, backfillPerplexity);
+         **/
+
+
+
        	List<String> argList = Lists.newLinkedList();
         argList.add("-i");
         argList.add(sparseVectorIn.toString()+ "/matrix");
@@ -178,7 +193,8 @@ public class LDATopicFactorizer{
         argList.add("-nut");
         argList.add(((LDARecommenderConfig)conf).getTrainingThreats().toString());
        String[] args = argList.toArray(new String[argList.size()]);
-       try {
+       /**
+        try {
 		InMemoryCollapsedVariationalBayes0.main(args);
 	    //computeAllTopicPosterior();
 		getAllTopicPosterior();
@@ -186,6 +202,63 @@ public class LDATopicFactorizer{
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-       return  new SemanticModel(indexItem,itemIndex, itemFeatures, new Path(((LDARecommenderConfig)conf).getLDARecommenderModelPath()),conf);
+       **/
+        UserGroupInformation ugi = UserGroupInformation.createRemoteUser("mw");
+        try {
+            ugi.doAs(new PrivilegedExceptionAction<Void>() {
+                public Void run() throws Exception {
+                    Configuration hdoopConf = new Configuration();
+                    hdoopConf.set("fs.defaultFS", "hdfs://192.168.2.233:9000/user/mw");
+                    hdoopConf.set("yarn.resourcemanager.hostname", "192.168.2.233");
+                    hdoopConf.set("mapreduce.framework.name", "yarn");
+                    hdoopConf.set("mapred.framework.name", "yarn");
+                    hdoopConf.set("mapred.job.tracker", "192.168.2.233:8032");
+                    hdoopConf.set("dfs.permissions.enabled", "false");
+                    hdoopConf.set("hadoop.job.ugi", "mw");
+                    hdoopConf.set("mapreduce.jobhistory.address","192.168.2.233:10020" );
+
+
+                    int maxIter =Integer.parseInt(((LDARecommenderConfig) conf).getMaxIterations());
+                    CVB0Driver driver = new CVB0Driver();
+                    int numTerms = getNumTerms(new Path(((LDARecommenderConfig)conf).getTopicsDictionaryPath()));
+                    Path tmp = sparseVectorIn.suffix("/matrix");
+
+                    try {
+                        driver.run(hdoopConf, sparseVectorIn.suffix("/matrix"),
+                                topicsOut, k, numTerms, doc_topic_smoothening, term_topic_smoothening,
+                                maxIter, iteration_block_size, convergenceDelta,
+                                sparseVectorIn.suffix("/dictionary.file-0"), topicsOut.suffix("/DocumentTopics/"), sparseVectorIn,
+                                seed, testFraction, numTrainThreads, numUpdateThreads, maxItersPerDoc,
+                                numReduceTasks, backfillPerplexity);
+                    } catch (ClassNotFoundException e) {
+                        e.printStackTrace();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    return null;
+                }
+            });
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+
+
+        return  new SemanticModel(indexItem,itemIndex, itemFeatures, new Path(((LDARecommenderConfig)conf).getLDARecommenderModelPath()),conf);
 	}
+
+    private static int getNumTerms( Path dictionaryPath) throws IOException {
+        Configuration conf = new Configuration();
+        FileSystem fs = dictionaryPath.getFileSystem(conf);
+        Text key = new Text();
+        IntWritable value = new IntWritable();
+        int maxTermId = -1;
+        for (FileStatus stat : fs.globStatus(dictionaryPath)) {
+            SequenceFile.Reader reader = new SequenceFile.Reader(fs, stat.getPath(), conf);
+            while (reader.next(key, value)) {
+                maxTermId = Math.max(maxTermId, value.get());
+            }
+        }
+        return maxTermId + 1;
+    }
 }

@@ -40,16 +40,7 @@ public class LDATopicModeller extends AbstractTrainer{
 	}
 
 	protected void doTrain() throws Exception {
-		/**			//MapReduce
-	       CVB0Driver driver = new CVB0Driver();			
-	       Configuration jobConf = new Configuration();
-	       driver.run(jobConf, sparseVectorIn.suffix("/matrix"),
-	        		topicsOut, k, 2000, doc_topic_smoothening, term_topic_smoothening,
-	                maxIter, iteration_block_size, convergenceDelta,
-	               new Path(((LDARecommenderConfig)conf).getTopicsDictionaryPath()), new Path(((LDARecommenderConfig)conf).getLDADocTopicsPath()), new Path(((LDARecommenderConfig)conf).getTmpLDAModelPath()),
-	               seed, testFraction, numTrainThreads, numUpdateThreads, maxItersPerDoc,
-	                numReduceTasks, backfillPerplexity);
-	       **/
+
 		//Inmemory
 			LDATopicFactorizer factorizer = new LDATopicFactorizer(conf);
 			SemanticModel semanticModel = factorizer.factorize();

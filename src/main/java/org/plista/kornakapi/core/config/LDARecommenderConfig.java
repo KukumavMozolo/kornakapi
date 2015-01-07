@@ -14,7 +14,9 @@ public class LDARecommenderConfig extends RecommenderConfig{
 	private String preprocessingDataDirectory;  
 	private Integer minimumWords;
     private Integer maxIterations;
-    
+    private String yarnInputDir;
+    private String yarnOutputDir;
+
     public String getMaxIterations(){
         return Integer.toString(maxIterations);
     }
@@ -94,4 +96,10 @@ public class LDARecommenderConfig extends RecommenderConfig{
 		return maxTermVariance;
 	}
 
+    public String getYarnInputDir() {
+        return yarnInputDir;
+    }
+    public String getYarnOutputDir() {
+        return yarnOutputDir;
+    }
 }

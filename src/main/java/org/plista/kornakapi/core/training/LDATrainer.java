@@ -16,22 +16,27 @@
 
 package org.plista.kornakapi.core.training;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
-
+import com.google.common.collect.Lists;
+import com.google.common.io.Files;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.mahout.cf.taste.model.DataModel;
 import org.apache.mahout.utils.vectors.VectorDumper;
 import org.plista.kornakapi.core.config.LDARecommenderConfig;
 import org.plista.kornakapi.core.config.RecommenderConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import com.google.common.collect.Lists;
-import com.google.common.io.Files;
+import java.io.File;
+import java.io.IOException;
+import java.security.PrivilegedExceptionAction;
+import java.util.List;
 
 public class LDATrainer extends AbstractTrainer{
-	
-	private LDARecommenderConfig conf;
+    private static final Logger log = LoggerFactory.getLogger(LDATrainer.class);
+	static LDARecommenderConfig conf;
 	
 	public LDATrainer(RecommenderConfig conf){
 		super(conf);
@@ -44,7 +49,9 @@ public class LDATrainer extends AbstractTrainer{
 		try {
 			collectNewArticles();
 			new FromDirectoryVectorizer(conf).doTrain();
+            exportSequenceFiletoYarm();
 			new LDATopicModeller(conf).doTrain();
+            importTopicsFromYarn();
 			printLocalTopicWordDistribution(conf,((LDARecommenderConfig)conf).getTopicsOutputPath(),((LDARecommenderConfig)conf).getTopicsOutputPath());
 			printLocalDocumentTopicDistribution(conf,((LDARecommenderConfig)conf).getLDADocTopicsPath(),((LDARecommenderConfig)conf).getLDADocTopicsPath());
 		} catch (Exception e) {
@@ -52,7 +59,93 @@ public class LDATrainer extends AbstractTrainer{
 			e.printStackTrace();
 		}		
 	}
-	
+
+    /**
+     hdoopConf.set("fs.defaultFS", "hdfs://192.168.2.233:9000");
+     hdoopConf.set("yarn.resourcemanager.hostname", "192.168.2.233");
+     hdoopConf.set("mapreduce.framework.name", "yarn");
+     hdoopConf.set("mapred.framework.name", "yarn");
+     hdoopConf.set("mapred.job.tracker", "192.168.2.233:8032");
+     hdoopConf.set("dfs.permissions.enabled", "false");
+     **/
+	protected void exportSequenceFiletoYarm() throws IOException {
+
+
+
+        UserGroupInformation ugi = UserGroupInformation.createRemoteUser("mw");
+        try {
+            ugi.doAs(new PrivilegedExceptionAction<Void>() {
+                public Void run() throws Exception {
+                    Configuration hdoopConf = new Configuration();
+                    hdoopConf.set("fs.defaultFS", "hdfs://192.168.2.233:9000/user/mw");
+                    hdoopConf.set("yarn.resourcemanager.hostname", "192.168.2.233");
+                    hdoopConf.set("mapreduce.framework.name", "yarn");
+                    hdoopConf.set("mapred.framework.name", "yarn");
+                    hdoopConf.set("mapred.job.tracker", "192.168.2.233:8032");
+                    hdoopConf.set("dfs.permissions.enabled", "false");
+                    hdoopConf.set("hadoop.job.ugi", "mw");
+
+
+                    String srcString = conf.getCVBInputPath();
+                    String dstString = conf.getYarnInputDir();
+                    log.info(srcString);
+
+                    Path dstDir = new Path(dstString );
+                    FileSystem fileSystem = FileSystem.get(hdoopConf);
+                    if ((fileSystem.exists(dstDir))) {
+                        fileSystem.delete(dstDir,true);
+                    }
+
+
+                    Path src = new Path(srcString + "matrix");
+                    Path dst = new Path(dstString + "matrix");
+
+                    String filename = srcString.substring(srcString.lastIndexOf('/') + 1, srcString.length());
+
+
+
+                    fileSystem.copyFromLocalFile(src,dst );
+
+                    String dictString = ((LDARecommenderConfig)conf).getTopicsDictionaryPath();
+                    Path dict = new Path(dictString);
+                    dst = new Path(dstString + "dictionary.file-0");
+                    fileSystem.copyFromLocalFile(dict,dst);
+
+                    return null;
+                }
+            });
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     hdoopConf.set("fs.defaultFS", "hdfs://192.168.2.233:9000");
+     hdoopConf.set("yarn.resourcemanager.hostname", "192.168.2.233");
+     hdoopConf.set("mapreduce.framework.name", "yarn");
+     hdoopConf.set("mapred.framework.name", "yarn");
+     hdoopConf.set("mapred.job.tracker", "192.168.2.233:8032");
+     hdoopConf.set("dfs.permissions.enabled", "false");
+     **/
+    protected void importTopicsFromYarn() throws IOException {
+        Configuration hdoopConf = new Configuration();
+        hdoopConf.set("fs.defaultFS", "hdfs://192.168.2.233:9000");
+        hdoopConf.set("yarn.resourcemanager.hostname", "192.168.2.233");
+        hdoopConf.set("mapreduce.framework.name", "yarn");
+        hdoopConf.set("mapred.framework.name", "yarn");
+        hdoopConf.set("mapred.job.tracker", "192.168.2.233:8032");
+        hdoopConf.set("dfs.permissions.enabled", "false");
+
+        this.conf.getCVBInputPath();
+        FileSystem fileSystem = FileSystem.get(hdoopConf);
+        try {
+            fileSystem.copyToLocalFile(new Path(this.conf.getYarnInputDir()), new Path(this.conf.getTopicsOutputPath()));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+
 	/**
 	 * copys all new articles to the corpus
 	 */
