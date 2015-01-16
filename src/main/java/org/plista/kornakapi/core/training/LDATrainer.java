@@ -29,8 +29,7 @@ import org.plista.kornakapi.core.config.RecommenderConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.security.PrivilegedExceptionAction;
 import java.util.List;
 
@@ -48,69 +47,47 @@ public class LDATrainer extends AbstractTrainer{
 			int numProcessors) throws IOException {
 		try {
 			collectNewArticles();
+            log.info("All Articles Collected");
 			new FromDirectoryVectorizer(conf).doTrain();
+            log.info("TFIDF - Sequence Files generated");
             exportSequenceFiletoYarm();
+            log.info("TFIDF - Sequence Files uploaded to Cluster");
+            deleteOldModelOnYarn();
 			new LDATopicModeller(conf).doTrain();
-            importTopicsFromYarn();
-			printLocalTopicWordDistribution(conf,((LDARecommenderConfig)conf).getTopicsOutputPath(),((LDARecommenderConfig)conf).getTopicsOutputPath());
-			printLocalDocumentTopicDistribution(conf,((LDARecommenderConfig)conf).getLDADocTopicsPath(),((LDARecommenderConfig)conf).getLDADocTopicsPath());
+            log.info("New Model Trained");
+			printTopicWordDistribution(conf, conf.getTopicsOutputPath(), conf.getLdaPrintPath());
+            log.info("Topics Printed to " +  conf.getLdaPrintPath());
+			printDocumentTopicDistribution(conf.getTopicsOutputPath(), conf.getLdaPrintPath());
+            log.info("Document Topics printed to "+  conf.getLdaPrintPath());
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}		
 	}
 
-    /**
-     hdoopConf.set("fs.defaultFS", "hdfs://192.168.2.233:9000");
-     hdoopConf.set("yarn.resourcemanager.hostname", "192.168.2.233");
-     hdoopConf.set("mapreduce.framework.name", "yarn");
-     hdoopConf.set("mapred.framework.name", "yarn");
-     hdoopConf.set("mapred.job.tracker", "192.168.2.233:8032");
-     hdoopConf.set("dfs.permissions.enabled", "false");
-     **/
 	protected void exportSequenceFiletoYarm() throws IOException {
-
-
-
-        UserGroupInformation ugi = UserGroupInformation.createRemoteUser("mw");
+        UserGroupInformation ugi = UserGroupInformation.createRemoteUser(conf.getHadoopUser());
         try {
             ugi.doAs(new PrivilegedExceptionAction<Void>() {
                 public Void run() throws Exception {
-                    Configuration hdoopConf = new Configuration();
-                    hdoopConf.set("fs.defaultFS", "hdfs://192.168.2.233:9000/user/mw");
-                    hdoopConf.set("yarn.resourcemanager.hostname", "192.168.2.233");
-                    hdoopConf.set("mapreduce.framework.name", "yarn");
-                    hdoopConf.set("mapred.framework.name", "yarn");
-                    hdoopConf.set("mapred.job.tracker", "192.168.2.233:8032");
-                    hdoopConf.set("dfs.permissions.enabled", "false");
-                    hdoopConf.set("hadoop.job.ugi", "mw");
-
+                    Configuration hadoopConf = new Configuration(false);
+                    hadoopConf.addResource(new Path(conf.getHadoopConfPath()));
 
                     String srcString = conf.getCVBInputPath();
                     String dstString = conf.getYarnInputDir();
-                    log.info(srcString);
 
                     Path dstDir = new Path(dstString );
-                    FileSystem fileSystem = FileSystem.get(hdoopConf);
+                    FileSystem fileSystem = FileSystem.get(hadoopConf);
                     if ((fileSystem.exists(dstDir))) {
                         fileSystem.delete(dstDir,true);
                     }
-
-
                     Path src = new Path(srcString + "matrix");
                     Path dst = new Path(dstString + "matrix");
-
-                    String filename = srcString.substring(srcString.lastIndexOf('/') + 1, srcString.length());
-
-
-
                     fileSystem.copyFromLocalFile(src,dst );
-
-                    String dictString = ((LDARecommenderConfig)conf).getTopicsDictionaryPath();
+                    String dictString = conf.getTopicsDictionaryPath();
                     Path dict = new Path(dictString);
                     dst = new Path(dstString + "dictionary.file-0");
                     fileSystem.copyFromLocalFile(dict,dst);
-
                     return null;
                 }
             });
@@ -120,30 +97,33 @@ public class LDATrainer extends AbstractTrainer{
     }
 
     /**
-     hdoopConf.set("fs.defaultFS", "hdfs://192.168.2.233:9000");
-     hdoopConf.set("yarn.resourcemanager.hostname", "192.168.2.233");
-     hdoopConf.set("mapreduce.framework.name", "yarn");
-     hdoopConf.set("mapred.framework.name", "yarn");
-     hdoopConf.set("mapred.job.tracker", "192.168.2.233:8032");
-     hdoopConf.set("dfs.permissions.enabled", "false");
-     **/
-    protected void importTopicsFromYarn() throws IOException {
-        Configuration hdoopConf = new Configuration();
-        hdoopConf.set("fs.defaultFS", "hdfs://192.168.2.233:9000");
-        hdoopConf.set("yarn.resourcemanager.hostname", "192.168.2.233");
-        hdoopConf.set("mapreduce.framework.name", "yarn");
-        hdoopConf.set("mapred.framework.name", "yarn");
-        hdoopConf.set("mapred.job.tracker", "192.168.2.233:8032");
-        hdoopConf.set("dfs.permissions.enabled", "false");
-
-        this.conf.getCVBInputPath();
-        FileSystem fileSystem = FileSystem.get(hdoopConf);
+     *
+     * @throws IOException
+     */
+    protected void deleteOldModelOnYarn() throws IOException {
+        UserGroupInformation ugi = UserGroupInformation.createRemoteUser(conf.getHadoopUser());
         try {
-            fileSystem.copyToLocalFile(new Path(this.conf.getYarnInputDir()), new Path(this.conf.getTopicsOutputPath()));
-        } catch (IOException e) {
+            ugi.doAs(new PrivilegedExceptionAction<Void>() {
+                public Void run() throws Exception {
+                    Configuration hadoopConf = new Configuration(false);
+                    hadoopConf.addResource(new Path(conf.getHadoopConfPath()));
+
+
+                    String outputSting = conf.getYarnOutputDir();
+
+                    Path outputDir = new Path(outputSting );
+                    FileSystem fileSystem = FileSystem.get(hadoopConf);
+                    if ((fileSystem.exists(outputDir))) {
+                        fileSystem.delete(outputDir,true);
+                    }
+                    return null;
+                }
+            });
+        } catch (InterruptedException e) {
             e.printStackTrace();
         }
     }
+
 
 
 	/**
@@ -152,8 +132,8 @@ public class LDATrainer extends AbstractTrainer{
 	protected void collectNewArticles(){
 		// train a specific training set
 		String trainingSet = conf.getTrainingSetName();
-		File newDocs = new File(((LDARecommenderConfig)conf).getInferencePath()+ "Documents/" + trainingSet + '/' );
-		String corpusDir = ((LDARecommenderConfig)conf).getTextDirectoryPath();
+		File newDocs = new File(conf.getInferencePath()+ "Documents/" + trainingSet + '/' );
+		String corpusDir = conf.getTextDirectoryPath();
 		for(File from: newDocs.listFiles()){
 			File to = new File(corpusDir+ from.getName());
 			try {
@@ -168,19 +148,106 @@ public class LDATrainer extends AbstractTrainer{
 			}
 		}	
 	}
-	
+
+    /**
+     *
+     * @param conf
+     * @param input
+     * @param output
+     */
+    public static void printTopicWordDistribution(RecommenderConfig conf, String input, String output){
+        File localDir = new File(input);
+        File target = new File(output + "topics.txt");
+        if(target.exists()){
+            target.delete();
+        }
+        for (final File fileEntry : localDir.listFiles()) {
+            if(fileEntry.getName().contains("part") && !fileEntry.getName().contains("crc")){
+                List<String> argList = Lists.newLinkedList();
+                argList.add("-i");
+                argList.add(fileEntry.getPath());
+                argList.add("-o");
+                argList.add(output + "/tmp.txt");
+                argList.add("--dictionaryType");
+                argList.add("sequencefile");
+                argList.add("-d");
+                argList.add(((LDARecommenderConfig)conf).getTopicsDictionaryPath());
+                argList.add("-sort");
+                argList.add("true");
+                argList.add("-vs");
+                argList.add("20");
+
+                String[] args = argList.toArray(new String[argList.size()]);
+                try {
+                    //LDAPrintTopics.main(args);
+                    VectorDumper.main(args);
+                    //append to file
+                    String from = output + "/tmp.txt";
+                    File fromTemp = new File(from);
+                    BufferedReader br = new BufferedReader(new FileReader(fromTemp));
+                    String line = br.readLine();
+                    StringBuilder sb = new StringBuilder();
+                    while (line != null) {
+                        sb.append(line);
+                        sb.append("\n");
+                        line = br.readLine();
+                    }
+                    String filename= output + "topics.txt";
+                    FileWriter fw = new FileWriter(filename,true); //the true will append the new data
+                    fw.write(sb.toString());
+                    fw.close();
+                    br.close();
+                } catch (Exception e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+            }
+        }
+
+
+    }
+
+    /**
+     *
+     * @param input
+     * @param output
+     */
+    public static void printDocumentTopicDistribution(String input, String output){
+        List<String> argList = Lists.newLinkedList();
+        argList.add("-i");
+        argList.add(input + "DocumentTopics/part-m-00000");
+        argList.add("-o");
+        argList.add(output + "/DocumentTopics.txt");
+        argList.add("-sort");
+        argList.add("true");
+        argList.add("-vs");
+        argList.add("20");
+        argList.add("-p");
+        argList.add("true");
+
+
+        String[] args = argList.toArray(new String[argList.size()]);
+        try {
+            //LDAPrintTopics.main(args);
+            VectorDumper.main(args);
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+
+    }
+
 	/**
 	 * Dumps the Topic distributen to file
-	 * @param conf
 	 * @param input
 	 * @param output
 	 */
-	public static void printLocalTopicWordDistribution(RecommenderConfig conf, String input, String output){
+	public static void printLocalTopicWordDistribution( String input, String output){
 	       List<String> argList = Lists.newLinkedList();
 	        argList.add("-i");
-	        argList.add(input);
+	        argList.add(input + "/part-m-00000");
 	        argList.add("-o");
-	        argList.add("/opt/kornakapi-model/lda/print/topics.txt");
+	        argList.add(output + "topics.txt");
 	        argList.add("--dictionaryType");
 	        argList.add("sequencefile");
 	        argList.add("-d");
@@ -200,17 +267,16 @@ public class LDATrainer extends AbstractTrainer{
 	}
 	
 	/**
-	 * 
-	 * @param conf
+	 *
 	 * @param input
 	 * @param output
 	 */
-	public static void printLocalDocumentTopicDistribution(RecommenderConfig conf, String input, String output){
+	public static void printLocalDocumentTopicDistribution( String input, String output){
 	       List<String> argList = Lists.newLinkedList();
 	        argList.add("-i");
 	        argList.add(input);
 	        argList.add("-o");
-	        argList.add("/opt/kornakapi-model/lda/print/DocumentTopics.txt");
+	        argList.add(output + "DocumentTopics.txt");
 	        argList.add("-sort");
 	        argList.add("true");
 	        argList.add("-vs");

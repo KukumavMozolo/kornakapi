@@ -16,8 +16,8 @@
 
 package org.plista.kornakapi.core.training;
 
-import com.google.common.collect.Lists;
 import com.google.common.io.Closeables;
+import org.apache.commons.io.FileUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
@@ -34,10 +34,10 @@ import org.apache.mahout.math.VectorWritable;
 import org.plista.kornakapi.core.config.LDARecommenderConfig;
 import org.plista.kornakapi.core.config.RecommenderConfig;
 
+import java.io.File;
 import java.io.IOException;
 import java.security.PrivilegedExceptionAction;
 import java.util.HashMap;
-import java.util.List;
 
 
 /**
@@ -51,12 +51,12 @@ public class LDATopicFactorizer{
     private double term_topic_smoothening = 0.0001;
     private int iteration_block_size = 10;
     private float testFraction = 0.1f;
-    private int numTrainThreads = 4;
-    private int numUpdateThreads = 1;
+    private int numTrainThreads ;
+    private int numUpdateThreads;
     private int maxItersPerDoc = 10;
     private int numReduceTasks = 10;
     private boolean backfillPerplexity = false;
-    private int seed = (int) Math.random() * 302221;
+    private int seed = (int) (Math.random() * 302221);
 
 	
     private Path sparseVectorIn;
@@ -82,14 +82,17 @@ public class LDATopicFactorizer{
 		this.conf = (LDARecommenderConfig)conf;
 		sparseVectorIn= new Path(this.conf.getYarnInputDir());
 		topicsOut= new Path(this.conf.getYarnOutputDir());
-		k= new Integer(this.conf.getnumberOfTopics());
+		k= this.conf.getnumberOfTopics();
         fs = FileSystem.get(lconf);
         this.alpha = this.conf.getAlpha();
         this.eta = this.conf.getEta();
+        this.numTrainThreads = this.conf.getTrainingThreats();
+        this.numUpdateThreads = this.conf.getTrainingThreats();
+        this.numReduceTasks = this.conf.getTrainingThreats();
 	}
 	
 	/**
-	 * 
+	 * Method mapping array index to itemIds
 	 * @throws IOException
 	 */
 	private void indexItem() throws IOException{
@@ -108,9 +111,9 @@ public class LDATopicFactorizer{
 	}
 	
 	/**
-	 * 
+	 *
 	 * @param itemid
-	 * @return
+	 * @return item index of itemid
 	 * @throws IOException
 	 */
 	public Integer getitemIndex(String itemid) throws IOException{
@@ -121,9 +124,9 @@ public class LDATopicFactorizer{
 	}
 	
 	/**
-	 * 
+	 * Method mapping array index to itemIds
 	 * @param idx
-	 * @return
+	 * @return Itemid for item index
 	 * @throws IOException
 	 */
 	public String getIndexItem(Integer idx) throws IOException{
@@ -141,7 +144,7 @@ public class LDATopicFactorizer{
 	 */
 	private void getAllTopicPosterior() throws IOException{
 		itemFeatures= new HashMap<String,Vector>();
-		Reader reader = new SequenceFile.Reader(fs,new Path(this.conf.getLDADocTopicsPath()) , lconf);
+		Reader reader = new SequenceFile.Reader(fs,new Path(this.conf.getTopicsOutputPath() + "DocumentTopics/part-m-00000") , lconf);
 		IntWritable key = new IntWritable();
 		VectorWritable newVal = new VectorWritable();
 		while(reader.next(key, newVal)){
@@ -168,7 +171,7 @@ public class LDATopicFactorizer{
          **/
 
 
-
+/**
        	List<String> argList = Lists.newLinkedList();
         argList.add("-i");
         argList.add(sparseVectorIn.toString()+ "/matrix");
@@ -202,29 +205,21 @@ public class LDATopicFactorizer{
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-       **/
-        UserGroupInformation ugi = UserGroupInformation.createRemoteUser("mw");
+ **/
+
+        UserGroupInformation ugi = UserGroupInformation.createRemoteUser(conf.getHadoopUser());
         try {
             ugi.doAs(new PrivilegedExceptionAction<Void>() {
                 public Void run() throws Exception {
-                    Configuration hdoopConf = new Configuration();
-                    hdoopConf.set("fs.defaultFS", "hdfs://192.168.2.233:9000/user/mw");
-                    hdoopConf.set("yarn.resourcemanager.hostname", "192.168.2.233");
-                    hdoopConf.set("mapreduce.framework.name", "yarn");
-                    hdoopConf.set("mapred.framework.name", "yarn");
-                    hdoopConf.set("mapred.job.tracker", "192.168.2.233:8032");
-                    hdoopConf.set("dfs.permissions.enabled", "false");
-                    hdoopConf.set("hadoop.job.ugi", "mw");
-                    hdoopConf.set("mapreduce.jobhistory.address","192.168.2.233:10020" );
+                    Configuration hadoopConf = new Configuration();
+                    hadoopConf.addResource(new Path(conf.getHadoopConfPath()));
 
-
-                    int maxIter =Integer.parseInt(((LDARecommenderConfig) conf).getMaxIterations());
+                    int maxIter =Integer.parseInt(conf.getMaxIterations());
                     CVB0Driver driver = new CVB0Driver();
-                    int numTerms = getNumTerms(new Path(((LDARecommenderConfig)conf).getTopicsDictionaryPath()));
-                    Path tmp = sparseVectorIn.suffix("/matrix");
+                    int numTerms = getNumTerms(new Path(conf.getTopicsDictionaryPath()));
 
                     try {
-                        driver.run(hdoopConf, sparseVectorIn.suffix("/matrix"),
+                        driver.run(hadoopConf, sparseVectorIn.suffix("/matrix"),
                                 topicsOut, k, numTerms, doc_topic_smoothening, term_topic_smoothening,
                                 maxIter, iteration_block_size, convergenceDelta,
                                 sparseVectorIn.suffix("/dictionary.file-0"), topicsOut.suffix("/DocumentTopics/"), sparseVectorIn,
@@ -235,16 +230,27 @@ public class LDATopicFactorizer{
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
+
+                    FileSystem fileSystem = FileSystem.get(hadoopConf);
+
+                    Path dest = new Path(conf.getTopicsOutputPath());
+                    FileUtils.deleteDirectory(new File(dest.toString()));
+                    try {
+                        fileSystem.copyToLocalFile(new Path(conf.getYarnOutputDir() ), dest );
+                    } catch (IOException e) {
+                        e.printStackTrace();
+
+                    }finally {
+                        fileSystem.close();
+                    }
                     return null;
                 }
             });
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-
-
-
-        return  new SemanticModel(indexItem,itemIndex, itemFeatures, new Path(((LDARecommenderConfig)conf).getLDARecommenderModelPath()),conf);
+        getAllTopicPosterior();
+        return  new SemanticModel(indexItem,itemIndex, itemFeatures, new Path(conf.getLDARecommenderModelPath()),conf);
 	}
 
     private static int getNumTerms( Path dictionaryPath) throws IOException {

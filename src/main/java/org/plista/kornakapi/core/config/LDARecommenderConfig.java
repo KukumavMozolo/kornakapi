@@ -16,6 +16,8 @@ public class LDARecommenderConfig extends RecommenderConfig{
     private Integer maxIterations;
     private String yarnInputDir;
     private String yarnOutputDir;
+    private String hadoopUser;
+    private String hadoopConfPath;
 
     public String getMaxIterations(){
         return Integer.toString(maxIterations);
@@ -102,4 +104,10 @@ public class LDARecommenderConfig extends RecommenderConfig{
     public String getYarnOutputDir() {
         return yarnOutputDir;
     }
+    public String getHadoopUser(){ return hadoopUser; }
+
+    public String getLdaPrintPath(){
+        return  ldaModelDirectory + "print/";
+    }
+    public String getHadoopConfPath(){ return hadoopConfPath;}
 }

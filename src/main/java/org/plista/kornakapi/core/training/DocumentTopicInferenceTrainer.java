@@ -90,7 +90,7 @@ public class DocumentTopicInferenceTrainer extends AbstractTrainer{
 	 */
 	private void inferTopicsForItems(){
 		HashMap<String, Vector> tfVectors = createVectorsFromDir();
-		if(tfVectors== null){ //If there are now topics then there is nothing to infere
+		if(tfVectors== null){ //If there are no topics then there is nothing to infere
 			return;
 		}
 		for(String itemid : tfVectors.keySet()){
