@@ -16,6 +16,7 @@
 
 package org.plista.kornakapi.core.training;
 
+import org.apache.mahout.cf.taste.common.TasteException;
 import org.apache.mahout.cf.taste.model.DataModel;
 import org.plista.kornakapi.core.config.RecommenderConfig;
 
@@ -28,9 +29,6 @@ import java.io.IOException;
  *
  */
 public class LDATopicModeller extends AbstractTrainer{
-
-	
-	
 	protected RecommenderConfig conf;
 
 	protected LDATopicModeller(RecommenderConfig conf) throws IOException {
@@ -39,18 +37,24 @@ public class LDATopicModeller extends AbstractTrainer{
 
 	}
 
-	protected void doTrain() throws Exception {
+    /**
+     *
+     * @throws Exception
+     */
+    protected void doTrain() throws Exception {
+        LDATopicVectorizer vectorize = new LDATopicVectorizer(conf);
+        SemanticModel semanticModel = vectorize.vectorize();
+        semanticModel.safeMaster();
 
-		//Inmemory
-			LDATopicFactorizer factorizer = new LDATopicFactorizer(conf);
-			SemanticModel semanticModel = factorizer.factorize();
-			semanticModel.safeMaster();
-
-		
 	}
 	@Override
 	protected void doTrain(File targetFile, DataModel inmemoryData,
 			int numProcessors) throws IOException {	
 	}
+    protected void doImport() throws IOException, TasteException {
+        LDATopicVectorizer vectorize = new LDATopicVectorizer(conf);
+        SemanticModel semanticModel = vectorize.getModelFromYarn();
+        semanticModel.safeMaster();
+    }
 	
 }

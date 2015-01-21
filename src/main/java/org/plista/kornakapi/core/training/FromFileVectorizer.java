@@ -16,15 +16,14 @@
 
 package org.plista.kornakapi.core.training;
 
-import java.util.List;
-
+import com.google.common.collect.Lists;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.util.ToolRunner;
 import org.apache.mahout.text.SequenceFilesFromDirectory;
 import org.apache.mahout.vectorizer.SparseVectorsFromSequenceFiles;
 import org.plista.kornakapi.core.config.LDARecommenderConfig;
 
-import com.google.common.collect.Lists;
+import java.util.List;
 
 /**
  * 
@@ -42,9 +41,9 @@ public class FromFileVectorizer {
 	 * @param conf
 	 */
 	protected FromFileVectorizer(LDARecommenderConfig conf) {
-		DocumentFilesPath = new Path(conf.getInferencePath()+ "Documents/" + conf.getTrainingSetName()+ "/");
-		sequenceFilesPath = new Path(conf.getInferencePath() + "seq");
-		sparseVectorOut= new Path(conf.getInferencePath() + "sparsein");
+		DocumentFilesPath = new Path(conf.getTextDirectoryPath() );
+		sequenceFilesPath = new Path(conf.getTextDirectoryPath()+ "seq/");
+		sparseVectorOut= new Path(conf.getInferencePath() + "sparsein/");
 		this.conf = conf;
 	}
 

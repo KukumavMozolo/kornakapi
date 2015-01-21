@@ -52,7 +52,6 @@ public class FromDirectoryVectorizer {
 
 	protected void doTrain() throws Exception {
 		generateSequneceFiles();
-        System.out.println("finished dir to seq job");
 		generateSparseVectors(false,true,this.conf.getMaxDFSigma(),sequenceFilesPath,sparseVectorOut);
 		ensureIntegerKeys(sparseVectorOut.suffix("/tfidf-vectors/part-r-00000"),sparseVectorInputPath);
 

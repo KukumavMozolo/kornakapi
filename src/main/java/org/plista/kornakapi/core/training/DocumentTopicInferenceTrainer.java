@@ -45,7 +45,6 @@ public class DocumentTopicInferenceTrainer extends AbstractTrainer{
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-
 		this.path = path;
 		trainingThreads = this.conf.getInferenceThreats();
         semanticModel = new SemanticModel(path, (LDARecommenderConfig)conf);
@@ -56,6 +55,42 @@ public class DocumentTopicInferenceTrainer extends AbstractTrainer{
         }
     }
 
+    @Override
+    /**
+     *
+     */
+    protected void doTrain(File targetFile, DataModel inmemoryData,
+                           int numProcessors) throws IOException {
+        semanticModel.read();
+        int deletes = removeDublicateArticles();
+        if(log.isInfoEnabled()){
+            log.info("Deleted " + new Integer(deletes).toString() + " dublicated Articles");
+        }
+        FromFileVectorizer vectorizer = new FromFileVectorizer(conf);
+        try {
+            vectorizer.doTrain();
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            log.info("Inference Failed");
+        }
+
+        inferTopicsForItems();
+
+    }
+
+    protected int removeDublicateArticles(){
+        File dir = new File(conf.getTextDirectoryPath());
+        HashMap itemIndex = semanticModel.getItemIndex();
+        int deleteCounter = 0;
+        for(File file : dir.listFiles()){
+            if(itemIndex.containsKey(file.getName())){
+                file.delete();
+                deleteCounter++;
+            }
+        }
+        return deleteCounter;
+    }
 
     /**
      *
@@ -126,7 +161,10 @@ public class DocumentTopicInferenceTrainer extends AbstractTrainer{
         return dict.toArray(new String[dict.size()]);
 	}
 
-	
+    /**
+     *
+     * @return
+     */
 	private HashMap<String,Vector> getNewVectors(){
 		HashMap<String, Vector> newVectors = new HashMap<String, Vector>();
 		try {
@@ -216,22 +254,7 @@ public class DocumentTopicInferenceTrainer extends AbstractTrainer{
 
 
 
-	@Override
-	protected void doTrain(File targetFile, DataModel inmemoryData,
-			int numProcessors) throws IOException {
-        semanticModel.read();
-		FromFileVectorizer vectorizer = new FromFileVectorizer(conf);
-		try {
-			vectorizer.doTrain();
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-            log.info("Inference Failed");
-		}
 
-		inferTopicsForItems();
-
-	}
 
     /**
      *
@@ -251,6 +274,6 @@ public class DocumentTopicInferenceTrainer extends AbstractTrainer{
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-		}		
+		}
 	}
 }

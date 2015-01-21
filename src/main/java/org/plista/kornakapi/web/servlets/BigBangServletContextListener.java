@@ -20,33 +20,24 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import com.google.common.io.Closeables;
 import com.google.common.io.Files;
-
 import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.mahout.cf.taste.common.TasteException;
 import org.apache.mahout.cf.taste.model.DataModel;
 import org.apache.mahout.cf.taste.recommender.CandidateItemsStrategy;
 import org.plista.kornakapi.KornakapiRecommender;
-import org.plista.kornakapi.core.config.RecommenderConfig;
+import org.plista.kornakapi.core.config.*;
 import org.plista.kornakapi.core.recommender.CachingAllUnknownItemsCandidateItemsStrategy;
 import org.plista.kornakapi.core.recommender.FoldingFactorizationBasedRecommender;
-import org.plista.kornakapi.core.recommender.LDATopicRecommender;
-import org.plista.kornakapi.core.config.Configuration;
-import org.plista.kornakapi.core.config.FactorizationbasedRecommenderConfig;
-import org.plista.kornakapi.core.config.ItembasedRecommenderConfig;
-import org.plista.kornakapi.core.config.LDARecommenderConfig;
 import org.plista.kornakapi.core.recommender.ItemSimilarityBasedRecommender;
+import org.plista.kornakapi.core.recommender.LDATopicRecommender;
 import org.plista.kornakapi.core.recommender.factory.FFBRFactory;
 import org.plista.kornakapi.core.recommender.factory.ISBRFactory;
 import org.plista.kornakapi.core.storage.CandidateCacheStorageDecorator;
 import org.plista.kornakapi.core.storage.MySqlMaxPersistentStorage;
 import org.plista.kornakapi.core.storage.MySqlStorage;
 import org.plista.kornakapi.core.storage.SemanticMySqlStorage;
-import org.plista.kornakapi.core.training.AbstractTrainer;
-import org.plista.kornakapi.core.training.FactorizationbasedInMemoryTrainer;
-import org.plista.kornakapi.core.training.LDATrainer;
-import org.plista.kornakapi.core.training.MultithreadedItembasedInMemoryTrainer;
-import org.plista.kornakapi.core.training.TaskScheduler;
-import org.plista.kornakapi.core.training.Trainer;
+import org.plista.kornakapi.core.training.*;
+import org.plista.kornakapi.core.training.factory.LDATrainerFactory;
 import org.plista.kornakapi.core.training.preferencechanges.DelegatingPreferenceChangeListenerForLabel;
 import org.plista.kornakapi.core.training.preferencechanges.InMemoryPreferenceChangeListener;
 import org.plista.kornakapi.web.Components;
@@ -56,7 +47,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
@@ -182,7 +172,8 @@ public class BigBangServletContextListener implements ServletContextListener {
 		           new CachingAllUnknownItemsCandidateItemsStrategy(dmodel);
 	  LDATopicRecommender recommender = new LDATopicRecommender(dmodel, allUnknownItemsStrategy , ldaconf);
 	  putRecommender(recommender,  name);
-	  putTrainer(new LDATrainer(conf.getLDARecommender()), conf.getLDARecommender(), name, "doesNotMatter");
+      LDATrainerFactory ldaFactory = new LDATrainerFactory(ldaconf);
+	  putTrainer(ldaFactory.getTrainer(), conf.getLDARecommender(), name, "doesNotMatter");
       log.info("Created LDARecommender");
       storages.put(name,  dec);
 	  

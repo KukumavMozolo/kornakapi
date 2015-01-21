@@ -41,10 +41,10 @@ import java.util.HashMap;
 
 
 /**
- * 
+ * Controlls the exectution of LDA on YARN cluster
  *
  */
-public class LDATopicFactorizer{
+public class LDATopicVectorizer {
 	
 
     private double doc_topic_smoothening = 0.0001;
@@ -78,7 +78,7 @@ public class LDATopicFactorizer{
 	 * @throws TasteException
 	 * @throws IOException
 	 */
-	protected LDATopicFactorizer(RecommenderConfig conf) throws TasteException, IOException {
+	protected LDATopicVectorizer(RecommenderConfig conf) throws TasteException, IOException {
 		this.conf = (LDARecommenderConfig)conf;
 		sparseVectorIn= new Path(this.conf.getYarnInputDir());
 		topicsOut= new Path(this.conf.getYarnOutputDir());
@@ -158,7 +158,7 @@ public class LDATopicFactorizer{
 	 * @return
 	 * @throws TasteException
 	 */
-	public SemanticModel factorize() throws TasteException, IOException {
+	public SemanticModel vectorize() throws TasteException, IOException {
         /**			//MapReduce
          CVB0Driver driver = new CVB0Driver();
          Configuration jobConf = new Configuration();
@@ -253,6 +253,50 @@ public class LDATopicFactorizer{
         return  new SemanticModel(indexItem,itemIndex, itemFeatures, new Path(conf.getLDARecommenderModelPath()),conf);
 	}
 
+
+    /**
+     * Method to connect to yarn and download newest topicModel
+     * @return SemanticModel
+     * @throws IOException
+     */
+    public SemanticModel getModelFromYarn() throws IOException {
+
+        UserGroupInformation ugi = UserGroupInformation.createRemoteUser(conf.getHadoopUser());
+        try {
+            ugi.doAs(new PrivilegedExceptionAction<Void>() {
+                public Void run() throws Exception {
+                    Configuration hadoopConf = new Configuration();
+                    hadoopConf.addResource(new Path(conf.getHadoopConfPath()));
+                    FileSystem fileSystem = FileSystem.get(hadoopConf);
+
+                    Path dest = new Path(conf.getTopicsOutputPath());
+                    FileUtils.deleteDirectory(new File(dest.toString()));
+                    try {
+                        fileSystem.copyToLocalFile(new Path(conf.getYarnOutputDir() ), dest );
+                        fileSystem.copyToLocalFile(new Path(conf.getYarnInputDir() + "/docIndex"), new Path(conf.getCVBInputPath() + "/docIndex"));
+                        fileSystem.copyToLocalFile(new Path(conf.getYarnInputDir() + "/dictionary.file-0"),  new Path(conf.getTopicsDictionaryPath()));
+                    } catch (IOException e) {
+                        e.printStackTrace();
+
+                    }finally {
+                        fileSystem.close();
+                    }
+                    return null;
+                }
+            });
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        getAllTopicPosterior();
+        return  new SemanticModel(indexItem,itemIndex, itemFeatures, new Path(conf.getLDARecommenderModelPath()),conf);
+    }
+
+    /**
+     *
+     * @param dictionaryPath
+     * @return
+     * @throws IOException
+     */
     private static int getNumTerms( Path dictionaryPath) throws IOException {
         Configuration conf = new Configuration();
         FileSystem fs = dictionaryPath.getFileSystem(conf);

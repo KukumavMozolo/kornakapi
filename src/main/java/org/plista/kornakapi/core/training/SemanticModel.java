@@ -232,7 +232,7 @@ public class SemanticModel{
         Closeables.close(w, false);
     }
 
-	
+
 	/**
 	 * method to load model from squence file
 	 * @throws IOException

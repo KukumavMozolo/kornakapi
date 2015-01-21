@@ -33,8 +33,12 @@ import java.io.*;
 import java.security.PrivilegedExceptionAction;
 import java.util.List;
 
+/**
+ * Trainer for the LDA model. Maintains database. Retrains and downloads the model if the server is LDA Master Server or downloads the model if the server is a LDA slave server.
+ * Prints out the topics and Documunet Topic distribution.
+ */
 public class LDATrainer extends AbstractTrainer{
-    private static final Logger log = LoggerFactory.getLogger(LDATrainer.class);
+    protected static final Logger log = LoggerFactory.getLogger(LDATrainer.class);
 	static LDARecommenderConfig conf;
 	
 	public LDATrainer(RecommenderConfig conf){
@@ -46,8 +50,7 @@ public class LDATrainer extends AbstractTrainer{
 	protected void doTrain(File targetFile, DataModel inmemoryData,
 			int numProcessors) throws IOException {
 		try {
-			collectNewArticles();
-            log.info("All Articles Collected");
+
 			new FromDirectoryVectorizer(conf).doTrain();
             log.info("TFIDF - Sequence Files generated");
             exportSequenceFiletoYarm();
@@ -88,6 +91,11 @@ public class LDATrainer extends AbstractTrainer{
                     Path dict = new Path(dictString);
                     dst = new Path(dstString + "dictionary.file-0");
                     fileSystem.copyFromLocalFile(dict,dst);
+
+                    src = new Path(conf.getCVBInputPath() + "/docIndex");
+                    dst = new Path(dstString + "docIndex");
+                    fileSystem.copyFromLocalFile(src,dst);
+
                     return null;
                 }
             });
