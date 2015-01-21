@@ -29,13 +29,7 @@ import org.slf4j.LoggerFactory;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.net.URLDecoder;
-import java.net.URLEncoder;
 
 
 /** servlet to add articles to a candidate set */
@@ -72,55 +66,28 @@ public class AddArticleServlet extends BaseServlet {
     	itemID = this.idRemapping(itemID);
     }
     try{
-    	this.storages().get("lda").addCandidate(label, itemID);
     	LDAArticleWriter writer = new LDAArticleWriter();
-    	
-    	// save the fulltext as usual
-    	writer.writeArticle(label, itemID, text, "pure");
-    	
+
     	// save preprocessed text 
     	String processed = filter.filterText(filter_bc.filterText(text));
-    	writer.writeArticle(label, itemID, processed, "stopwords");
-    	
-    	// save full text with SCE AL 1
-    	if(sce_al1 != null) {
-    		String fulltextSceAl1 = text + " " + sce_al1;
-    		writer.writeArticle(label, itemID, fulltextSceAl1, "SCEAL1");
-    	}
-    	
-    	// save full text with SCE AL 2
-    	if(sce_al2 != null) {
-    		String fulltextSceAl2 = text + " " + sce_al2;
-    		writer.writeArticle(label, itemID, fulltextSceAl2, "SCEAL2");
-    	}
-    	
-    	// save preprocessed text with SCE AL1
-    	if(sce_al1 != null) {
-    		String textSceAl1 = text + "  " + sce_al1;
-    		String processedSceAl1 = filter.filterText(filter_bc.filterText(textSceAl1));
-    		writer.writeArticle(label, itemID, processedSceAl1, "processedSCEAL1");
-    	}
-    	
-    	// save preprocessed text with SCE AL2
-    	if(sce_al2 != null) {
-    		String textSceAl2 = text + " " + sce_al2;
-    		String processedSceAl2 = filter.filterText(filter_bc.filterText(textSceAl2));
-    		writer.writeArticle(label, itemID, processedSceAl2, "processedSCEAL2");
-    	}
-        this.storages().get(label).addCandidate(label, itemID);
+    	writer.writeArticle(label, itemID, processed);
 
-    	topicInferenceForNewItems();	
+        this.storages().get(label).addCandidate(label, itemID);
+        if(!config.isLDAMaster()){
+            topicInferenceForNewItems();
+        }
     } catch(NullPointerException e){
 	  if(log.isInfoEnabled()){
 		  log.info("No Recommender found for label {} and itemID {}", label, itemID );
 	  }
     }
   }
-  /**
-   * 
-   * @param name
-   * @param itemid
-   */
+
+    /**
+     *
+     * @param label
+     * @param itemid
+     */
   private void topicInferenceForItem(String label, String itemid){
 	  String name = itemid+ "_lda";
 	  LDARecommenderConfig conf = (LDARecommenderConfig) this.getConfiguration().getLDARecommender();
