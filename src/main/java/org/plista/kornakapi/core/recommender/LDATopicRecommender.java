@@ -68,6 +68,7 @@ public class LDATopicRecommender extends AbstractRecommender implements Kornakap
         FastIDSet possibleItemIDs =  getAllOtherItems(Long.MIN_VALUE, preferences, false);
         if(log.isInfoEnabled()){
             log.info("ItemFeature: {}", itemFeature.toString());
+            log.info("Preferences: {}", preferences.toString());
             log.info("Rescorer: {}", rescorer.toString());
             log.info("PossibleItemIds: {}", possibleItemIDs.toString());
 
