@@ -61,7 +61,8 @@ public class RecommendServlet extends BaseServlet {
 		FastIDSet candidates = d.getCandidates(label);
 		rescorer = new FixedCandidatesIDRescorer(candidates);
         if (log.isInfoEnabled()) {
-            log.info("Candidates contains: " + candidates.toString());
+            log.info("Candidates contains: " );
+            log.info(candidates.toString());
         }
 
 		String recommenderName = getParameter(request, Parameters.RECOMMENDER, true);
