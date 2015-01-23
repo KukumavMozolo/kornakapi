@@ -60,6 +60,7 @@ public class RecommendServlet extends BaseServlet {
 		CandidateCacheStorageDecorator d = storages().get("lda");
 		FastIDSet candidates = d.getCandidates(label);
 		rescorer = new FixedCandidatesIDRescorer(candidates);
+        log.debug("Candidates contains:", candidates.toString());
 		String recommenderName = getParameter(request, Parameters.RECOMMENDER, true);
 	    KornakapiRecommender recommender = recommender(recommenderName);
 	    long[] itemIDs = getParameterAsLongArray(request, Parameters.ITEM_IDS);
@@ -196,8 +197,7 @@ public class RecommendServlet extends BaseServlet {
 	}
   }
   /**
-   * 
-   * @param name
+   *
    * @param itemid
    */
   private void topicInferenceForItem(String label, String itemid){
