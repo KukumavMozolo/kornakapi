@@ -65,13 +65,13 @@ public class RecommendServlet extends BaseServlet {
 	    long[] itemIDs = getParameterAsLongArray(request, Parameters.ITEM_IDS);
 		if (log.isInfoEnabled()) {
 			log.info("Get LDA Recommendations for item {}", itemIDs[0] );
+            log.info("Candidates contains: " );
+            log.info(candidates.toString());
 		}
 	    try {
 			recommendedItems = recommender.recommendToAnonymous(itemIDs, howMany, rescorer);
 			if (log.isInfoEnabled()) {
 				log.info("LDA recommendet {}", recommendedItems.toString() );
-                log.info("Candidates contains: " );
-                log.info(candidates.toString());
 			}
   
 	    
