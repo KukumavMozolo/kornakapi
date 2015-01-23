@@ -66,13 +66,6 @@ public class LDATopicRecommender extends AbstractRecommender implements Kornakap
         Vector itemFeature = model.getItemFeatures(itemId.toString());
         PreferenceArray preferences = asPreferences(itemIDs);
         FastIDSet possibleItemIDs =  getAllOtherItems(Long.MIN_VALUE, preferences, false);
-        if(log.isInfoEnabled()){
-            log.info("ItemFeature: {}", itemFeature.toString());
-            log.info("Preferences: {}", preferences.toString());
-            log.info("Rescorer: {}", rescorer.toString());
-            log.info("PossibleItemIds: {}", possibleItemIDs.toString());
-
-        }
         List<RecommendedItem> topItems = TopItems.getTopItems(howMany, possibleItemIDs.iterator(), rescorer, new SemanticEstimator(itemFeature));
         return topItems;
     }
