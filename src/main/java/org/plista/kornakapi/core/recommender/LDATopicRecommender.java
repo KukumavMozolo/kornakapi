@@ -18,6 +18,8 @@ import org.apache.mahout.math.Vector;
 import org.plista.kornakapi.KornakapiRecommender;
 import org.plista.kornakapi.core.config.LDARecommenderConfig;
 import org.plista.kornakapi.core.training.SemanticModel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -27,6 +29,7 @@ import java.util.concurrent.Callable;
 
 
 public class LDATopicRecommender extends AbstractRecommender implements KornakapiRecommender {
+    private static final Logger log = LoggerFactory.getLogger(LDATopicRecommender.class);
 
 	private LDARecommenderConfig conf;
 	private SemanticModel model;
@@ -63,6 +66,9 @@ public class LDATopicRecommender extends AbstractRecommender implements Kornakap
         Vector itemFeature = model.getItemFeatures(itemId.toString());
         PreferenceArray preferences = asPreferences(itemIDs);
         FastIDSet possibleItemIDs =  getAllOtherItems(Long.MIN_VALUE, preferences, false);
+        if(log.isInfoEnabled()){
+            log.info("ItemFeature: {}", itemFeature.toString());
+        }
         List<RecommendedItem> topItems = TopItems.getTopItems(howMany, possibleItemIDs.iterator(), rescorer, new SemanticEstimator(itemFeature));
         return topItems;
     }
