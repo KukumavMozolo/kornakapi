@@ -44,7 +44,13 @@ public class CachingAllUnknownItemsCandidateItemsStrategy implements CandidateIt
   public FastIDSet getCandidateItems(long userID, PreferenceArray preferencesFromUser, DataModel dataModel)
       throws TasteException {
     FastIDSet possibleItemIDs = allItemIDs.clone();
+      if(log.isInfoEnabled()){
+          log.info("PossibleItemIDs: {}", possibleItemIDs.toString());
+      }
     possibleItemIDs.removeAll(preferencesFromUser.getIDs());
+    if(log.isInfoEnabled()){
+        log.info("PossibleItemIDsRemoved: {}", possibleItemIDs.toString());
+    }
     return possibleItemIDs;
   }
 
