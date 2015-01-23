@@ -60,7 +60,7 @@ public class RecommendServlet extends BaseServlet {
 		CandidateCacheStorageDecorator d = storages().get("lda");
 		FastIDSet candidates = d.getCandidates(label);
 		rescorer = new FixedCandidatesIDRescorer(candidates);
-        log.debug("Candidates contains:", candidates.toString());
+        log.info("Candidates contains:", candidates.toString());
 		String recommenderName = getParameter(request, Parameters.RECOMMENDER, true);
 	    KornakapiRecommender recommender = recommender(recommenderName);
 	    long[] itemIDs = getParameterAsLongArray(request, Parameters.ITEM_IDS);
