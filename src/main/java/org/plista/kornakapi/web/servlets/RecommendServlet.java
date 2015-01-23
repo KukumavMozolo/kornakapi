@@ -60,11 +60,6 @@ public class RecommendServlet extends BaseServlet {
 		CandidateCacheStorageDecorator d = storages().get("lda");
 		FastIDSet candidates = d.getCandidates(label);
 		rescorer = new FixedCandidatesIDRescorer(candidates);
-        if (log.isInfoEnabled()) {
-            log.info("Candidates contains: " );
-            log.info(candidates.toString());
-        }
-
 		String recommenderName = getParameter(request, Parameters.RECOMMENDER, true);
 	    KornakapiRecommender recommender = recommender(recommenderName);
 	    long[] itemIDs = getParameterAsLongArray(request, Parameters.ITEM_IDS);
@@ -75,6 +70,8 @@ public class RecommendServlet extends BaseServlet {
 			recommendedItems = recommender.recommendToAnonymous(itemIDs, howMany, rescorer);
 			if (log.isInfoEnabled()) {
 				log.info("LDA recommendet {}", recommendedItems.toString() );
+                log.info("Candidates contains: " );
+                log.info(candidates.toString());
 			}
   
 	    
