@@ -22,6 +22,8 @@ import org.apache.hadoop.util.ToolRunner;
 import org.apache.mahout.text.SequenceFilesFromDirectory;
 import org.apache.mahout.vectorizer.SparseVectorsFromSequenceFiles;
 import org.plista.kornakapi.core.config.LDARecommenderConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
@@ -31,7 +33,7 @@ import java.util.List;
  */
 public class FromFileVectorizer {
 
-
+    private static final Logger log = LoggerFactory.getLogger(FromFileVectorizer.class);
 	private Path DocumentFilesPath;
 	private Path sequenceFilesPath;
 	private Path sparseVectorOut;
@@ -57,6 +59,9 @@ public class FromFileVectorizer {
 	 * @throws Exception 
 	 */
 	private void generateSequneceFiles() throws Exception{
+        if(log.isInfoEnabled()){
+            log.info("From: " + DocumentFilesPath.toString() +" To: " + sequenceFilesPath.toString());
+        }
 		List<String> argList = Lists.newLinkedList();
         argList.add("-i");
         argList.add(DocumentFilesPath.toString());
