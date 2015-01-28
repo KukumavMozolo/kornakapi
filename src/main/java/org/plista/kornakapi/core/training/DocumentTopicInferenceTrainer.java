@@ -113,7 +113,8 @@ public class DocumentTopicInferenceTrainer extends AbstractTrainer{
                     validFiles.add(new Path(file));
                 }
             }
-            Path[] validFilesPaths = (Path[]) validFiles.toArray();
+            Path[] validFilesPaths = new Path[validFiles.size()];
+            validFilesPaths = validFiles.toArray(validFilesPaths);
 			TopicModel model = new TopicModel(lconf, conf.getEta(), conf.getAlpha(), getDictAsArray(), trainingThreads, modelWeight,
                     validFilesPaths);
 			 Vector docTopics = new DenseVector(new double[model.getNumTopics()]).assign(1.0/model.getNumTopics());
