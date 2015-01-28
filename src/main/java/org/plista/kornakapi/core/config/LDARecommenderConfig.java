@@ -44,7 +44,7 @@ public class LDARecommenderConfig extends RecommenderConfig{
 		return ldaModelDirectory + "/seq/";
 	}
 	public String getTextDirectoryPath() {
-		return ldaModelDirectory + "/Documents/";
+		return ldaModelDirectory + "Documents/";
 	}
 	
 	public String getSparseVectorOutputPath() {
