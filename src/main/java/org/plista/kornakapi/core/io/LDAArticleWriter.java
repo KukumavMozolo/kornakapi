@@ -28,6 +28,9 @@ public class LDAArticleWriter {
     		f.delete();
     	}
 		f.createNewFile();
+        if(log.isInfoEnabled()){
+            log.info("File: " + filename +", Text: " + pText);
+        }
 		BufferedWriter output = new BufferedWriter(new FileWriter(f));
         output.write(pText);
         output.close();
