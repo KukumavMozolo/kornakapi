@@ -13,7 +13,8 @@ import java.io.IOException;
 
 public class LDAArticleWriter {
 	
-	  private static final Logger log = LoggerFactory.getLogger(LDAArticleWriter.class);
+	private static final Logger log = LoggerFactory.getLogger(LDAArticleWriter.class);
+
 	public void writeArticle(String pLabel, long pItemId, String pText) throws IOException {
 		Components components = Components.instance();
 		Configuration config = components.getConfiguration();
@@ -27,9 +28,9 @@ public class LDAArticleWriter {
     	if(f.exists()){
     		f.delete();
     	}
-		f.createNewFile();
+		boolean succes = f.createNewFile();
         if(log.isInfoEnabled()){
-            log.info("File: " + filename +", Text: " + pText);
+            log.info("File: " + filename +", succes: " + new Boolean(succes).toString());
         }
 		BufferedWriter output = new BufferedWriter(new FileWriter(f));
         output.write(pText);
