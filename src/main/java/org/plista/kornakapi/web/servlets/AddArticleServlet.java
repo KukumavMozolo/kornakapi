@@ -45,9 +45,7 @@ public class AddArticleServlet extends BaseServlet {
 	String label = getParameter(request, Parameters.LABEL, true);
     String text = getParameter(request, Parameters.Text, true);
     long itemID = getParameterAsLong(request, Parameters.ITEM_ID, true);
-    if (log.isInfoEnabled()){
-          log.info("Adding label : {} , text {}", label, text);
-    }
+
     
     // Initialization for pre-processing
 	LDARecommenderConfig config = (LDARecommenderConfig) this.getConfiguration().getLDARecommender();
@@ -65,17 +63,22 @@ public class AddArticleServlet extends BaseServlet {
     if(itemID < 0 || itemID > 2147483647){
     	itemID = this.idRemapping(itemID);
     }
-    try{
-    	LDAArticleWriter writer = new LDAArticleWriter();
+    try {
+        LDAArticleWriter writer = new LDAArticleWriter();
 
-    	// save preprocessed text 
-    	String processed = filter.filterText(filter_bc.filterText(text));
-    	writer.writeArticle(label, itemID, processed);
+        // save preprocessed text
+        String processed = filter.filterText(filter_bc.filterText(text));
+        writer.writeArticle(label, itemID, processed);
 
         this.storages().get(label).addCandidate(label, itemID);
-        if(!config.isLDAMaster()){
+        if (!config.isLDAMaster()) {
             topicInferenceForNewItems();
         }
+    } catch(IOException e){
+        if (log.isInfoEnabled()){
+            log.info(e.toString());
+        }
+
     } catch(NullPointerException e){
 	  if(log.isInfoEnabled()){
 		  log.info("No Recommender found for label {} and itemID {}", label, itemID );
