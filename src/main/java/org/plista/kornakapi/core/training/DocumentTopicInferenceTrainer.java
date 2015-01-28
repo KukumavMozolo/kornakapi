@@ -66,16 +66,19 @@ public class DocumentTopicInferenceTrainer extends AbstractTrainer{
         if(log.isInfoEnabled()){
             log.info("Deleted " + new Integer(deletes).toString() + " dublicated Articles");
         }
+
         FromFileVectorizer vectorizer = new FromFileVectorizer(conf);
+        boolean succes = false;
         try {
-            vectorizer.doTrain();
+            succes = vectorizer.doTrain();
         } catch (Exception e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
             log.info("Inference Failed");
         }
-
-        inferTopicsForItems();
+        if(succes){
+            inferTopicsForItems();
+        }
 
     }
 

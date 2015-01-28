@@ -50,16 +50,17 @@ public class FromFileVectorizer {
 		this.conf = conf;
 	}
 
-	protected void doTrain() throws Exception {
+	protected boolean doTrain() throws Exception {
         File dir =  new File(DocumentFilesPath.toString());
         if(dir.list().length == 0){
             if(log.isInfoEnabled()){
-                log.info("Directory is empty");
+                log.info("Directory is empty. There are no new Articles.");
             }
-            return;
+            return false;
         }
 		generateSequneceFiles();
 		generateSparseVectors(false,true,this.conf.getMaxDFSigma(),sequenceFilesPath,sparseVectorOut);
+        return  true;
 
 	}
 	/**
