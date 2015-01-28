@@ -25,6 +25,7 @@ import org.plista.kornakapi.core.config.LDARecommenderConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.util.List;
 
 /**
@@ -50,6 +51,13 @@ public class FromFileVectorizer {
 	}
 
 	protected void doTrain() throws Exception {
+        File dir =  new File(DocumentFilesPath.toString());
+        if(dir.list().length == 0){
+            if(log.isInfoEnabled()){
+                log.info("Directory is empty");
+            }
+            return;
+        }
 		generateSequneceFiles();
 		generateSparseVectors(false,true,this.conf.getMaxDFSigma(),sequenceFilesPath,sparseVectorOut);
 

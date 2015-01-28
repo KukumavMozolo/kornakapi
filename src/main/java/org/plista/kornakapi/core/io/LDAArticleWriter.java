@@ -28,12 +28,5 @@ public class LDAArticleWriter {
 		BufferedWriter output = new BufferedWriter(new FileWriter(f));
         output.write(pText);
         output.close();
-
-        BufferedReader reader = new BufferedReader(new FileReader(f));
-
-        String line = reader.readLine();
-        if(log.isInfoEnabled()){
-            log.info(line);
-        }
 	}
 }
