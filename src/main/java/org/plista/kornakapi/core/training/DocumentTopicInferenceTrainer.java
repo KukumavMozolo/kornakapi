@@ -109,7 +109,7 @@ public class DocumentTopicInferenceTrainer extends AbstractTrainer{
             String[] files = dir.list();
             ArrayList<Path> validFiles = new ArrayList<Path>();
             for(String file :files){
-                if(file.contains("part-m")){
+                if(file.contains("part-m") && !file.contains(".crc")){
                     validFiles.add(new Path(file));
                 }
             }
