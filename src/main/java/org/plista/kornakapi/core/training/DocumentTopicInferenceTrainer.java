@@ -104,9 +104,18 @@ public class DocumentTopicInferenceTrainer extends AbstractTrainer{
 		if(semanticModel.getItemFeatures().containsKey(itemid)){
 			return;
 		}
-		try {			
-			TopicModel model = new TopicModel(lconf, conf.getEta(), conf.getAlpha(), getDictAsArray(), trainingThreads, modelWeight, 
-					new Path(this.conf.getTopicsOutputPath())); 
+		try {
+            File dir = new File(this.conf.getTopicsOutputPath());
+            String[] files = dir.list();
+            ArrayList<Path> validFiles = new ArrayList<Path>();
+            for(String file :files){
+                if(file.contains("part-m")){
+                    validFiles.add(new Path(file));
+                }
+            }
+            Path[] validFilesPaths = (Path[]) validFiles.toArray();
+			TopicModel model = new TopicModel(lconf, conf.getEta(), conf.getAlpha(), getDictAsArray(), trainingThreads, modelWeight,
+                    validFilesPaths);
 			 Vector docTopics = new DenseVector(new double[model.getNumTopics()]).assign(1.0/model.getNumTopics());
 			 Matrix docTopicModel = new SparseRowMatrix(model.getNumTopics(), item.size());
 			 int maxIters = 5000;
