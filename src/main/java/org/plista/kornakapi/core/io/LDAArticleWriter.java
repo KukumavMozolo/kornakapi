@@ -6,10 +6,7 @@ import org.plista.kornakapi.web.Components;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 
 public class LDAArticleWriter {
 	
@@ -28,12 +25,15 @@ public class LDAArticleWriter {
     	if(f.exists()){
     		f.delete();
     	}
-		boolean succes = f.createNewFile();
-        if(log.isInfoEnabled()){
-            log.info("File: " + filename +", succes: " + new Boolean(succes).toString());
-        }
 		BufferedWriter output = new BufferedWriter(new FileWriter(f));
         output.write(pText);
         output.close();
+
+        BufferedReader reader = new BufferedReader(new FileReader(f));
+
+        String line = reader.readLine();
+        if(log.isInfoEnabled()){
+            log.info(line);
+        }
 	}
 }
