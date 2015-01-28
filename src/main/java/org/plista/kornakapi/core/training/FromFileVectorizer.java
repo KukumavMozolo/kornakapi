@@ -44,7 +44,7 @@ public class FromFileVectorizer {
 	 */
 	protected FromFileVectorizer(LDARecommenderConfig conf) {
 		DocumentFilesPath = new Path(conf.getTextDirectoryPath() );
-		sequenceFilesPath = new Path(conf.getTextDirectoryPath()+ "seq/");
+		sequenceFilesPath = new Path(conf.getVectorOutputPath());
 		sparseVectorOut= new Path(conf.getInferencePath() + "sparsein/");
 		this.conf = conf;
 	}
@@ -59,9 +59,6 @@ public class FromFileVectorizer {
 	 * @throws Exception 
 	 */
 	private void generateSequneceFiles() throws Exception{
-        if(log.isInfoEnabled()){
-            log.info("From: " + DocumentFilesPath.toString() +" To: " + sequenceFilesPath.toString());
-        }
 		List<String> argList = Lists.newLinkedList();
         argList.add("-i");
         argList.add(DocumentFilesPath.toString());
