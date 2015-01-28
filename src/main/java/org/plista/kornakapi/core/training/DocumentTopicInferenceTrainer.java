@@ -62,10 +62,7 @@ public class DocumentTopicInferenceTrainer extends AbstractTrainer{
     protected void doTrain(File targetFile, DataModel inmemoryData,
                            int numProcessors) throws IOException {
         semanticModel.read();
-        int deletes = removeDublicateArticles();
-        if(log.isInfoEnabled()){
-            log.info("Deleted " + new Integer(deletes).toString() + " dublicated Articles");
-        }
+
 
         FromFileVectorizer vectorizer = new FromFileVectorizer(conf);
         boolean succes = false;
@@ -82,18 +79,6 @@ public class DocumentTopicInferenceTrainer extends AbstractTrainer{
 
     }
 
-    protected int removeDublicateArticles(){
-        File dir = new File(conf.getTextDirectoryPath());
-        HashMap itemIndex = semanticModel.getItemIndex();
-        int deleteCounter = 0;
-        for(File file : dir.listFiles()){
-            if(itemIndex.containsKey(file.getName())){
-                file.delete();
-                deleteCounter++;
-            }
-        }
-        return deleteCounter;
-    }
 
     /**
      *

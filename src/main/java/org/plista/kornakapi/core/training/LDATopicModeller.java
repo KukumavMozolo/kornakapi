@@ -18,10 +18,14 @@ package org.plista.kornakapi.core.training;
 
 import org.apache.mahout.cf.taste.common.TasteException;
 import org.apache.mahout.cf.taste.model.DataModel;
+import org.plista.kornakapi.core.config.LDARecommenderConfig;
 import org.plista.kornakapi.core.config.RecommenderConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
 
 
 /**
@@ -30,7 +34,7 @@ import java.io.IOException;
  */
 public class LDATopicModeller extends AbstractTrainer{
 	protected RecommenderConfig conf;
-
+    private static final Logger log = LoggerFactory.getLogger(LDATopicModeller.class);
 	protected LDATopicModeller(RecommenderConfig conf) throws IOException {
 		super(conf);
 		this.conf = conf;
@@ -55,6 +59,24 @@ public class LDATopicModeller extends AbstractTrainer{
         LDATopicVectorizer vectorize = new LDATopicVectorizer(conf);
         SemanticModel semanticModel = vectorize.getModelFromYarn();
         semanticModel.safeMaster();
+        int deletes = removeDublicateArticles(semanticModel);
+
+        if(log.isInfoEnabled()){
+            log.info("Deleted " + new Integer(deletes).toString() + " dublicated Articles");
+        }
+    }
+
+    protected int removeDublicateArticles(SemanticModel model){
+        File dir = new File(((LDARecommenderConfig)conf).getTextDirectoryPath());
+        HashMap itemIndex = model.getItemIndex();
+        int deleteCounter = 0;
+        for(File file : dir.listFiles()){
+            if(itemIndex.containsKey(file.getName())){
+                file.delete();
+                deleteCounter++;
+            }
+        }
+        return deleteCounter;
     }
 	
 }
