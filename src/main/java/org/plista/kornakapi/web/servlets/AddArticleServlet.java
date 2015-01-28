@@ -45,9 +45,9 @@ public class AddArticleServlet extends BaseServlet {
 	String label = getParameter(request, Parameters.LABEL, true);
     String text = getParameter(request, Parameters.Text, true);
     long itemID = getParameterAsLong(request, Parameters.ITEM_ID, true);
-    
-    String sce_al1 = getParameter(request, Parameters.SCE_AL1, false);
-    String sce_al2 = getParameter(request, Parameters.SCE_AL2, false);
+    if (log.isInfoEnabled()){
+          log.info("Adding label : {} , text {}", label, text);
+    }
     
     // Initialization for pre-processing
 	LDARecommenderConfig config = (LDARecommenderConfig) this.getConfiguration().getLDARecommender();
