@@ -66,6 +66,11 @@ public class LDATopicModeller extends AbstractTrainer{
         }
     }
 
+    /**
+     *
+     * @param model
+     * @return
+     */
     protected int removeDublicateArticles(SemanticModel model){
         File dir = new File(((LDARecommenderConfig)conf).getTextDirectoryPath());
         HashMap itemIndex = model.getItemIndex();

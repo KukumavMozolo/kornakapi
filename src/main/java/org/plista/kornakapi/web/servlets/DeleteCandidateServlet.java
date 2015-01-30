@@ -34,12 +34,23 @@ public class DeleteCandidateServlet extends BaseServlet {
 
     String label = getParameter(request, Parameters.LABEL, true);
     long itemID = getParameterAsLong(request, Parameters.ITEM_ID, true);
-    try{
-        this.storages().get(label).deleteCandidate(label, itemID);
-    } catch(NullPointerException e){
-    	  if(log.isInfoEnabled()){
-    		  log.info("No Recommender found for label {} and itemID {}", label, itemID );
-    	  }
+    if(this.storages().containsKey("lda")){
+        try{
+            this.storages().get("lda").deleteCandidate(label, itemID);
+
+        } catch(NullPointerException e){
+            if(log.isInfoEnabled()){
+                log.info("No LDARecommender configured" );
+            }
+        }
     }
+      try{
+          this.storages().get(label).deleteCandidate(label, itemID);
+
+      } catch(NullPointerException e){
+          if(log.isInfoEnabled()){
+              log.info("No Recommender found for label {} and itemID {}", label, itemID );
+          }
+      }
   }
 }

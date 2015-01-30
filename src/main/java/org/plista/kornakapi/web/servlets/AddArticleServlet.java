@@ -70,7 +70,7 @@ public class AddArticleServlet extends BaseServlet {
         String processed = filter.filterText(filter_bc.filterText(text));
         writer.writeArticle(label, itemID, processed);
 
-        this.storages().get(label).addCandidate(label, itemID);
+        this.storages().get("lda").addCandidate(label, itemID);
         if (!config.isLDAMaster()) {
             topicInferenceForNewItems();
         }
