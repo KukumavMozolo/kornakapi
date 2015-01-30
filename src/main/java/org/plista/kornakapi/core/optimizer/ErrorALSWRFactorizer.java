@@ -136,7 +136,10 @@ public class ErrorALSWRFactorizer extends AbstractFactorizer {
     }
 
     Vector getItemFeatureColumn(int index) {
-      return new DenseVector(M[index]);
+      if(index < M.length){
+         return new DenseVector(M[index]);
+      }
+      return null;
     }
 
     void setFeatureColumnInU(int idIndex, Vector vector) {
@@ -297,12 +300,14 @@ public class ErrorALSWRFactorizer extends AbstractFactorizer {
     	  int idx = 0;
     	  for(long itemID: itemIDs ){
     		  Vector itemf = features.getItemFeatureColumn(itemIndex(itemID));
-    		  double pref = itemf.dot(userf);
-    		  double realpref = userPrefs.getValue(idx);
-    		  idx++;
-              double delta = (pref - realpref);
-    		  error = error + (delta)*(delta);
-              samples ++;
+              if(itemf !=null){
+                  double pref = itemf.dot(userf);
+                  double realpref = userPrefs.getValue(idx);
+                  idx++;
+                  double delta = (pref - realpref);
+                  error = error + (delta)*(delta);
+                  samples ++;
+              }
     	  }	  
       }
       errors[iteration] = error/samples;
