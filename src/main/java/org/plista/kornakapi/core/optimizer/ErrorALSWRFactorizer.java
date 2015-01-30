@@ -303,11 +303,17 @@ public class ErrorALSWRFactorizer extends AbstractFactorizer {
               if(itemf !=null){
                   double pref = itemf.dot(userf);
                   double realpref = userPrefs.getValue(idx);
-                  idx++;
                   double delta = (pref - realpref);
                   error = error + (delta)*(delta);
                   samples ++;
+                  if(userPrefs.getItemID(idx) != itemID){
+                      if(log.isInfoEnabled()){
+                          log.info("Ids dont coincide");
+                      }
+                  }
+
               }
+              idx++;
     	  }	  
       }
       errors[iteration] = error/samples;
