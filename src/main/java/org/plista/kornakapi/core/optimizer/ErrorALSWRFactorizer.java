@@ -290,11 +290,11 @@ public class ErrorALSWRFactorizer extends AbstractFactorizer {
         }
       }
 
-
+      //Calculation of test Error
       int samples = 0;
       Iterator intersectingUserIterator = interSectingUsers.iterator();
       double error = 0;
-      while (intersectingUserIterator.hasNext()) {
+      while (intersectingUserIterator.hasNext()) { //only check for users that where trained
     	  Long userID = (Long)intersectingUserIterator.next();
     	  PreferenceArray userPrefs = testModel.getPreferencesFromUser(userID);
     	  Vector userf = features.getUserFeatureColumn(userIndex(userID));
@@ -312,10 +312,10 @@ public class ErrorALSWRFactorizer extends AbstractFactorizer {
           while (items.hasNext()){
               long itemID = items.nextLong();
     		  Vector itemf = features.getItemFeatureColumn(itemIndex(itemID));
-              if(itemf !=null){
+              if(itemf != null){
                   double realpref = 0;
-                  if(userItemsItemIdIdxMap.containsKey(itemID)) {
-                      idx = userItemsItemIdIdxMap.get(itemID);
+                  if(userItemsItemIdIdxMap.containsKey(itemID)) { //preferences are sparsly stored
+                      idx = userItemsItemIdIdxMap.get(itemID);    // -> without 0 preference
                       realpref = userPrefs.getValue(idx);
                   }
                   double pref = itemf.dot(userf);
@@ -325,9 +325,8 @@ public class ErrorALSWRFactorizer extends AbstractFactorizer {
               }
     	  }
       }
+      log.info("Acumulated Error of {} over {} samples", error,samples);
       errors[iteration] = error/samples;
-      
-  
     }
     ErrorFactorization factorization = createErrorFactorization(features.getU(), features.getM(),errors,trainErrors);
     log.info("finished computation of the factorization...");
