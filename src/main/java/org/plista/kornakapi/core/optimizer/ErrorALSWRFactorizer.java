@@ -182,6 +182,7 @@ public class ErrorALSWRFactorizer extends AbstractFactorizer {
     Set interSectingUsers = getIntersectingUsers(dataModel.getUserIDs(), testModel.getUserIDs());
 
     Double[] errors = new Double[numIterations];
+    Double[] trainErrors = new Double[numIterations];
     for (int iteration = 0; iteration < numIterations; iteration++) {
 	  LongPrimitiveIterator userIDsIterator = dataModel.getUserIDs();
 	  LongPrimitiveIterator itemIDsIterator = dataModel.getItemIDs();
@@ -289,9 +290,33 @@ public class ErrorALSWRFactorizer extends AbstractFactorizer {
         }
       }
 
+        double trainError = 0;
+        int samples = 0;
+        Iterator intersectingUserIterator = interSectingUsers.iterator();
+        while (intersectingUserIterator.hasNext()) {
+            Long userID = (Long)intersectingUserIterator.next();
+            PreferenceArray userPrefs = dataModel.getPreferencesFromUser(userID);
+            Vector userf = features.getUserFeatureColumn(userIndex(userID));
+            long[] itemIDs = userPrefs.getIDs();
+            int idx = 0;
+            for(long itemID: itemIDs ){
+                Vector itemf = features.getItemFeatureColumn(itemIndex(itemID));
+                if(itemf !=null){
+                    double pref = itemf.dot(userf);
+                    double realpref = userPrefs.getValue(idx);
+                    double delta = (pref - realpref);
+                    trainError = trainError + (delta)*(delta);
+                    samples ++;
+                }
+                idx++;
+            }
+        }
+        trainErrors[iteration] = trainError/samples;
+
+
       double error = 0;
-      int samples = 0;
-      Iterator intersectingUserIterator = interSectingUsers.iterator();
+      samples = 0;
+      intersectingUserIterator = interSectingUsers.iterator();
       while (intersectingUserIterator.hasNext()) {
     	  Long userID = (Long)intersectingUserIterator.next();
     	  PreferenceArray userPrefs = testModel.getPreferencesFromUser(userID);
@@ -306,12 +331,6 @@ public class ErrorALSWRFactorizer extends AbstractFactorizer {
                   double delta = (pref - realpref);
                   error = error + (delta)*(delta);
                   samples ++;
-                  if(userPrefs.getItemID(idx) != itemID){
-                      if(log.isInfoEnabled()){
-                          log.info("Ids dont coincide");
-                      }
-                  }
-
               }
               idx++;
     	  }	  
@@ -320,7 +339,7 @@ public class ErrorALSWRFactorizer extends AbstractFactorizer {
       
   
     }
-    ErrorFactorization factorization = createErrorFactorization(features.getU(), features.getM(),errors);
+    ErrorFactorization factorization = createErrorFactorization(features.getU(), features.getM(),errors,trainErrors);
     log.info("finished computation of the factorization...");
     return factorization;
   }
@@ -401,19 +420,24 @@ public class ErrorALSWRFactorizer extends AbstractFactorizer {
   
   class ErrorFactorization extends Factorization{
 	  private Double[] errors;
+      private Double[] trainErrors;
 	  public ErrorFactorization(FastByIDMap<Integer> userIDMapping,
 			FastByIDMap<Integer> itemIDMapping, double[][] userFeatures,
-			double[][] itemFeatures, Double[] errors) {
+			double[][] itemFeatures, Double[] errors, Double[] trainErrors) {
 		super(userIDMapping, itemIDMapping, userFeatures, itemFeatures);
 		this.errors = errors;
+        this.trainErrors = trainErrors;
 		// TODO Auto-generated constructor stub
 	}
 
 	  public Double[] getError(){
 		  return this.errors;
 	  }
+      public Double[] getTrainErrors(){
+          return trainErrors;
+      }
   }
-  protected ErrorFactorization createErrorFactorization(double[][] userFeatures, double[][] itemFeatures, Double[] errors) {
+  protected ErrorFactorization createErrorFactorization(double[][] userFeatures, double[][] itemFeatures, Double[] errors, Double[] trainErrors) {
 	  FastByIDMap<Integer> userIDMapping = null;
 	  FastByIDMap<Integer> itemIDMapping = null;
 	try {
@@ -424,7 +448,7 @@ public class ErrorALSWRFactorizer extends AbstractFactorizer {
 		e.printStackTrace();
 	}
 	  
-	    return new ErrorFactorization(userIDMapping, itemIDMapping, userFeatures, itemFeatures,errors);
+	    return new ErrorFactorization(userIDMapping, itemIDMapping, userFeatures, itemFeatures,errors, trainErrors);
 	  }
   private static FastByIDMap<Integer> createIDMapping(int size, LongPrimitiveIterator idIterator) {
 	    FastByIDMap<Integer> mapping = new FastByIDMap<Integer>(size);

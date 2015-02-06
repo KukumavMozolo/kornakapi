@@ -71,9 +71,8 @@ public class FactorizationBasedInMemoryOptimizer extends AbstractOptimizer{
                             } catch (Exception e) {
                                 throw new IOException(e);
                             }
-                            factorization.getError();
                             // 3 measure performance
-                            log.info("Error of {} for features {}, alpha {}, lambda {}, fold: {}", new Object[]{factorization.getError(), feature, alpha, lambda, i});
+                            log.info("Error of {}, trainError of {} for features {}, alpha {}, lambda {}, fold: {}", new Object[]{factorization.getError(), factorization.getTrainErrors(),feature, alpha, lambda, i});
                             totalError += factorization.getError()[iter-1];
                         }
                         totalError = totalError /3;
