@@ -290,50 +290,10 @@ public class ErrorALSWRFactorizer extends AbstractFactorizer {
         }
       }
 
-        double trainError = 0;
-        int samples = 0;
-        Iterator intersectingUserIterator = interSectingUsers.iterator();
-        while (intersectingUserIterator.hasNext()) {
-            Long userID = (Long)intersectingUserIterator.next();
-            PreferenceArray userPrefs = dataModel.getPreferencesFromUser(userID);
-            Vector userf = features.getUserFeatureColumn(userIndex(userID));
-            LongPrimitiveIterator items = dataModel.getItemIDs();
 
-
-
-            userPrefs.sortByItem();
-            long[] userItems = userPrefs.getIDs();
-            HashMap<Long,Integer> userItemsItemIdIdxMap = new HashMap<Long,Integer>();
-            int idx = 0;
-            for(long item: userItems){
-                userItemsItemIdIdxMap.put(item,idx);
-                idx++;
-            }
-
-            idx = 0;
-            while (items.hasNext()){
-                long itemID = items.nextLong();
-                Vector itemf = features.getItemFeatureColumn(itemIndex(itemID));
-                if(itemf !=null){
-                    double realpref = 0;
-                    if(userItemsItemIdIdxMap.containsKey(itemID)) {
-                        idx = userItemsItemIdIdxMap.get(itemID);
-                        realpref = userPrefs.getValue(idx);
-                    }
-                    double pref = itemf.dot(userf);
-                    double delta = (pref - realpref);
-                    trainError = trainError + (delta)*(delta);
-                    samples ++;
-                }
-                idx++;
-            }
-        }
-        trainErrors[iteration] = trainError/samples;
-
-
+      int samples = 0;
+      Iterator intersectingUserIterator = interSectingUsers.iterator();
       double error = 0;
-      samples = 0;
-      intersectingUserIterator = interSectingUsers.iterator();
       while (intersectingUserIterator.hasNext()) {
     	  Long userID = (Long)intersectingUserIterator.next();
     	  PreferenceArray userPrefs = testModel.getPreferencesFromUser(userID);
@@ -349,7 +309,6 @@ public class ErrorALSWRFactorizer extends AbstractFactorizer {
               idx++;
           }
 
-          idx = 0;
           while (items.hasNext()){
               long itemID = items.nextLong();
     		  Vector itemf = features.getItemFeatureColumn(itemIndex(itemID));
@@ -364,7 +323,6 @@ public class ErrorALSWRFactorizer extends AbstractFactorizer {
                   error = error + (delta)*(delta);
                   samples ++;
               }
-              idx++;
     	  }
       }
       errors[iteration] = error/samples;
