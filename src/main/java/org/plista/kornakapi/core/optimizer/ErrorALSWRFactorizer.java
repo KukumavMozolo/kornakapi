@@ -325,7 +325,7 @@ public class ErrorALSWRFactorizer extends AbstractFactorizer {
               }
     	  }
       }
-      log.info("Acumulated Error of {} over {} samples", error,samples);
+      log.info("Accumulated Error of {} over {} samples", error,samples);
       errors[iteration] = error/samples;
     }
     ErrorFactorization factorization = createErrorFactorization(features.getU(), features.getM(),errors,trainErrors);
