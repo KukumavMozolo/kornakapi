@@ -73,11 +73,11 @@ public class LDATopicRecommender extends AbstractRecommender implements Kornakap
         return topItems;
     }
 
-    private float semanticPreference(Vector currentFeatures, Long itemID){
+    private double semanticPreference(Vector currentFeatures, Long itemID){
     	Vector v;
 		try {
 			v = model.getItemFeatures(itemID.toString());
-			return (float) currentFeatures.dot(v);
+			return  currentFeatures.dot(v);
 		} catch (NoSuchItemException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
