@@ -82,7 +82,7 @@ public class LDATopicRecommender extends AbstractRecommender implements Kornakap
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		return (float) 0;
+		return (double)0;
     }
 
 

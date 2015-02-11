@@ -184,6 +184,8 @@ public class LDATrainer extends AbstractTrainer{
                 argList.add("true");
                 argList.add("-vs");
                 argList.add("20");
+                argList.add("-p");
+                argList.add("true");
 
                 String[] args = argList.toArray(new String[argList.size()]);
                 try {
@@ -226,6 +228,10 @@ public class LDATrainer extends AbstractTrainer{
         argList.add(input + "DocumentTopics/part-m-00000");
         argList.add("-o");
         argList.add(output + "/DocumentTopics.txt");
+        argList.add("--dictionaryType");
+        argList.add("sequencefile");
+        argList.add("-d");
+        argList.add(((LDARecommenderConfig)conf).getCVBInputPath() + "docIndex");
         argList.add("-sort");
         argList.add("true");
         argList.add("-vs");
