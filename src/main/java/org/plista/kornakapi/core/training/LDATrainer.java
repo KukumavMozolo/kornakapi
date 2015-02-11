@@ -57,16 +57,16 @@ public class LDATrainer extends AbstractTrainer{
 			int numProcessors) throws IOException {
 		try {
 
-//			new FromDirectoryVectorizer(conf).doTrain();
-//            log.info("TFIDF - Sequence Files generated");
-//            exportSequenceFiletoYarm();
-//            log.info("TFIDF - Sequence Files uploaded to Cluster");
-//            deleteOldModelOnYarn();
-//			new LDATopicModeller(conf).doTrain();
-//            log.info("New Model Trained");
-//			printTopicWordDistribution(conf, conf.getTopicsOutputPath(), conf.getLdaPrintPath());
-//            log.info("Topics Printed to " +  conf.getLdaPrintPath());
-//			printDocumentTopicDistribution(conf.getTopicsOutputPath(), conf.getLdaPrintPath());
+			new FromDirectoryVectorizer(conf).doTrain();
+            log.info("TFIDF - Sequence Files generated");
+            exportSequenceFiletoYarm();
+            log.info("TFIDF - Sequence Files uploaded to Cluster");
+            deleteOldModelOnYarn();
+			new LDATopicModeller(conf).doTrain();
+            log.info("New Model Trained");
+			printTopicWordDistribution(conf, conf.getTopicsOutputPath(), conf.getLdaPrintPath());
+            log.info("Topics Printed to " +  conf.getLdaPrintPath());
+			printDocumentTopicDistribution(conf.getTopicsOutputPath(), conf.getLdaPrintPath());
             DocumentTopicsPrinter();
             log.info("Document Topics printed to "+  conf.getLdaPrintPath());
 		} catch (Exception e) {
