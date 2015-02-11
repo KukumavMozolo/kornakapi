@@ -66,7 +66,6 @@ public class LDATrainer extends AbstractTrainer{
             log.info("New Model Trained");
 			printTopicWordDistribution(conf, conf.getTopicsOutputPath(), conf.getLdaPrintPath());
             log.info("Topics Printed to " +  conf.getLdaPrintPath());
-			printDocumentTopicDistribution(conf.getTopicsOutputPath(), conf.getLdaPrintPath());
             DocumentTopicsPrinter();
             log.info("Document Topics printed to "+  conf.getLdaPrintPath());
 		} catch (Exception e) {
@@ -258,60 +257,9 @@ public class LDATrainer extends AbstractTrainer{
         Closeables.close(writer, false);
     }
 
-    public void idxIntegerVectorDumperPreparer() throws IOException {
-        org.apache.hadoop.conf.Configuration lconf = new org.apache.hadoop.conf.Configuration();
-        FileSystem fs = FileSystem.get(lconf);
-        SequenceFile.Reader reader = new SequenceFile.Reader(fs,new Path(conf.getCVBInputPath() + "docIndex") , lconf);
-        SequenceFile.Writer writer = new SequenceFile.Writer(fs,lconf,new Path(conf.getCVBInputPath() + "docIndexText"), Text.class, IntWritable.class);
-        IntWritable idx = new IntWritable();
-        Text itemid = new Text();
-
-        while(reader.next(idx,itemid)) {
-            writer.append(itemid,idx);
-        }
-
-        Closeables.close(reader, false);
-        Closeables.close(writer, false);
-    }
-
-    /**
-     *
-     * @param input
-     * @param output
-     */
-    public void printDocumentTopicDistribution(String input, String output){
-        try {
-            idxIntegerVectorDumperPreparer();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        List<String> argList = Lists.newLinkedList();
-        argList.add("-i");
-        argList.add(input + "DocumentTopics/part-m-00000");
-        argList.add("-o");
-        argList.add(output + "/DocumentTopics.txt");
-        argList.add("--dictionaryType");
-        argList.add("sequencefile");
-        argList.add("-d");
-        argList.add(((LDARecommenderConfig)conf).getCVBInputPath() + "docIndexText");
-        argList.add("-sort");
-        argList.add("true");
-        argList.add("-vs");
-        argList.add("20");
-        argList.add("-p");
-        argList.add("true");
 
 
-        String[] args = argList.toArray(new String[argList.size()]);
-        try {
-            //LDAPrintTopics.main(args);
-            VectorDumper.main(args);
-        } catch (Exception e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
 
-    }
 
 	/**
 	 * Dumps the Topic distributen to file
