@@ -27,6 +27,7 @@ import org.apache.hadoop.io.SequenceFile;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.mahout.cf.taste.model.DataModel;
+import org.apache.mahout.math.VectorWritable;
 import org.apache.mahout.utils.vectors.VectorDumper;
 import org.plista.kornakapi.core.config.LDARecommenderConfig;
 import org.plista.kornakapi.core.config.RecommenderConfig;
@@ -35,6 +36,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.security.PrivilegedExceptionAction;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -55,16 +57,17 @@ public class LDATrainer extends AbstractTrainer{
 			int numProcessors) throws IOException {
 		try {
 
-			new FromDirectoryVectorizer(conf).doTrain();
-            log.info("TFIDF - Sequence Files generated");
-            exportSequenceFiletoYarm();
-            log.info("TFIDF - Sequence Files uploaded to Cluster");
-            deleteOldModelOnYarn();
-			new LDATopicModeller(conf).doTrain();
-            log.info("New Model Trained");
-			printTopicWordDistribution(conf, conf.getTopicsOutputPath(), conf.getLdaPrintPath());
-            log.info("Topics Printed to " +  conf.getLdaPrintPath());
-			printDocumentTopicDistribution(conf.getTopicsOutputPath(), conf.getLdaPrintPath());
+//			new FromDirectoryVectorizer(conf).doTrain();
+//            log.info("TFIDF - Sequence Files generated");
+//            exportSequenceFiletoYarm();
+//            log.info("TFIDF - Sequence Files uploaded to Cluster");
+//            deleteOldModelOnYarn();
+//			new LDATopicModeller(conf).doTrain();
+//            log.info("New Model Trained");
+//			printTopicWordDistribution(conf, conf.getTopicsOutputPath(), conf.getLdaPrintPath());
+//            log.info("Topics Printed to " +  conf.getLdaPrintPath());
+//			printDocumentTopicDistribution(conf.getTopicsOutputPath(), conf.getLdaPrintPath());
+            DocumentTopicsPrinter();
             log.info("Document Topics printed to "+  conf.getLdaPrintPath());
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -219,6 +222,40 @@ public class LDATrainer extends AbstractTrainer{
         }
 
 
+    }
+
+    public void DocumentTopicsPrinter() throws IOException {
+        org.apache.hadoop.conf.Configuration lconf = new org.apache.hadoop.conf.Configuration();
+        FileSystem fs = FileSystem.get(lconf);
+
+        HashMap<Integer,String> indexItemid  = new HashMap<Integer, String>();
+        SequenceFile.Reader reader = new SequenceFile.Reader(fs,new Path(conf.getCVBInputPath() + "docIndex") , lconf);
+        SequenceFile.Writer writer = new SequenceFile.Writer(fs,lconf,new Path(conf.getCVBInputPath() + "docIndexText"), Text.class, IntWritable.class);
+        IntWritable idx = new IntWritable();
+        Text itemid = new Text();
+
+        while(reader.next(idx,itemid)) {
+            indexItemid.put(idx.get(),itemid.toString());
+        }
+        Closeables.close(reader, false);
+
+        reader =  new SequenceFile.Reader(fs,new Path(conf.getTopicsOutputPath() +"DocumentTopics/part-m-00000" ) , lconf);
+        VectorWritable vector = new VectorWritable();
+
+        File f = new File(conf.getLdaPrintPath()+"DocumentTopics.txt" );
+        if(f.exists()){
+            f.delete();
+        }
+        BufferedWriter output = new BufferedWriter(new FileWriter(f));
+
+
+        while(reader.next(idx,vector)){
+            output.append(indexItemid.get(idx)  + vector.toString());
+            output.newLine();
+        }
+        output.close();
+        Closeables.close(reader, false);
+        Closeables.close(writer, false);
     }
 
     public void idxIntegerVectorDumperPreparer() throws IOException {
