@@ -17,10 +17,14 @@
 package org.plista.kornakapi.core.training;
 
 import com.google.common.collect.Lists;
+import com.google.common.io.Closeables;
 import com.google.common.io.Files;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.io.SequenceFile;
+import org.apache.hadoop.io.Text;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.mahout.cf.taste.model.DataModel;
 import org.apache.mahout.utils.vectors.VectorDumper;
@@ -217,12 +221,33 @@ public class LDATrainer extends AbstractTrainer{
 
     }
 
+    public void idxIntegerVectorDumperPreparer() throws IOException {
+        org.apache.hadoop.conf.Configuration lconf = new org.apache.hadoop.conf.Configuration();
+        FileSystem fs = FileSystem.get(lconf);
+        SequenceFile.Reader reader = new SequenceFile.Reader(fs,new Path(conf.getCVBInputPath() + "docIndex") , lconf);
+        SequenceFile.Writer writer = new SequenceFile.Writer(fs,lconf,new Path(conf.getCVBInputPath() + "docIndexText"), Text.class, IntWritable.class);
+        IntWritable idx = new IntWritable();
+        Text itemid = new Text();
+
+        while(reader.next(idx,itemid)) {
+            writer.append(itemid,idx);
+        }
+
+        Closeables.close(reader, false);
+        Closeables.close(writer, false);
+    }
+
     /**
      *
      * @param input
      * @param output
      */
-    public static void printDocumentTopicDistribution(String input, String output){
+    public void printDocumentTopicDistribution(String input, String output){
+        try {
+            idxIntegerVectorDumperPreparer();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         List<String> argList = Lists.newLinkedList();
         argList.add("-i");
         argList.add(input + "DocumentTopics/part-m-00000");
@@ -231,7 +256,7 @@ public class LDATrainer extends AbstractTrainer{
         argList.add("--dictionaryType");
         argList.add("sequencefile");
         argList.add("-d");
-        argList.add(((LDARecommenderConfig)conf).getCVBInputPath() + "docIndex");
+        argList.add(((LDARecommenderConfig)conf).getCVBInputPath() + "docIndexText");
         argList.add("-sort");
         argList.add("true");
         argList.add("-vs");
