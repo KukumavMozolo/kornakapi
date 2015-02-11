@@ -67,6 +67,9 @@ public class LDATopicRecommender extends AbstractRecommender implements Kornakap
         PreferenceArray preferences = asPreferences(itemIDs);
         FastIDSet possibleItemIDs =  getAllOtherItems(Long.MIN_VALUE, preferences, false);
         List<RecommendedItem> topItems = TopItems.getTopItems(howMany, possibleItemIDs.iterator(), rescorer, new SemanticEstimator(itemFeature));
+        if(log.isInfoEnabled()){
+            log.info("ItemID: {} , ItemFeatures: {}, topItems: {}",new Object[] {itemId,  itemFeature, topItems});
+        }
         return topItems;
     }
 
