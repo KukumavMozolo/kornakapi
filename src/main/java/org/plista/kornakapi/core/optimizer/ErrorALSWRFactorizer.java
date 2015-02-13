@@ -291,7 +291,7 @@ public class ErrorALSWRFactorizer extends AbstractFactorizer {
       }
 
       //Calculation of test Error
-      int samples = 0;
+      long samples = 0;
       Iterator intersectingUserIterator = interSectingUsers.iterator();
       double error = 0;
       while (intersectingUserIterator.hasNext()) { //only check for users that where trained
@@ -319,7 +319,7 @@ public class ErrorALSWRFactorizer extends AbstractFactorizer {
                       realpref = userPrefs.getValue(idx);
                   }
                   double pref = itemf.dot(userf);
-                  double delta = (pref - realpref);
+                  double delta = pref - realpref;
                   error = error + (delta)*(delta);
                   samples ++;
               }
