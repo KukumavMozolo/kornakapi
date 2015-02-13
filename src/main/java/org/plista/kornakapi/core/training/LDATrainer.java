@@ -189,7 +189,7 @@ public class LDATrainer extends AbstractTrainer{
                 argList.add("-sort");
                 argList.add("true");
                 argList.add("-vs");
-                argList.add("20");
+                argList.add("50");
                 argList.add("-p");
                 argList.add("true");
 
