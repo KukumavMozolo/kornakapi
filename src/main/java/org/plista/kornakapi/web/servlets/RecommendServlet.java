@@ -68,10 +68,7 @@ public class RecommendServlet extends BaseServlet {
 		}
 	    try {
 			recommendedItems = recommender.recommendToAnonymous(itemIDs, howMany, rescorer);
-			if (log.isInfoEnabled()) {
-				log.info("LDA recommendet {}", recommendedItems.toString() );
-			}
-  
+
 	    
 	      PrintWriter writer = response.getWriter();
 

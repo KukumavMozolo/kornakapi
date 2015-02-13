@@ -85,23 +85,17 @@ public class DocumentTopicInferenceTrainer extends AbstractTrainer{
      * @param itemid
      * @param item
      */
-	private void inferTopics(String itemid, Vector item){      
+	private void inferTopics(Path[] validFiles, String itemid, Vector item){
 		if(semanticModel.getItemFeatures().containsKey(itemid)){
+            if(log.isInfoEnabled()){
+                log.info("Item {} is already known.", itemid);
+            }
 			return;
 		}
 		try {
-            File dir = new File(this.conf.getTopicsOutputPath());
-            String[] files = dir.list();
-            ArrayList<Path> validFiles = new ArrayList<Path>();
-            for(String file :files){
-                if(file.contains("part-m") && !file.contains(".crc")){
-                    validFiles.add(new Path(this.conf.getTopicsOutputPath() + file));
-                }
-            }
-            Path[] validFilesPaths = new Path[validFiles.size()];
-            validFilesPaths = validFiles.toArray(validFilesPaths);
+
 			TopicModel model = new TopicModel(lconf, conf.getEta(), conf.getAlpha(), getDictAsArray(), trainingThreads, modelWeight,
-                    validFilesPaths);
+                    validFiles);
 			 Vector docTopics = new DenseVector(new double[model.getNumTopics()]).assign(1.0/model.getNumTopics());
 			 Matrix docTopicModel = new SparseRowMatrix(model.getNumTopics(), item.size());
 			 int maxIters = 5000;
@@ -112,6 +106,9 @@ public class DocumentTopicInferenceTrainer extends AbstractTrainer{
             semanticModel.getItemFeatures().put(itemid, docTopics);
             semanticModel.getIndexItem().put(semanticModel.getIndexItem().size() + 1, itemid);
             semanticModel.getItemIndex().put(itemid, semanticModel.getItemIndex().size() + 1);
+            if(log.isInfoEnabled()){
+                log.info("Inferred new Feature Vector for item: {}", itemid);
+            }
 		    
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -126,8 +123,10 @@ public class DocumentTopicInferenceTrainer extends AbstractTrainer{
 		if(tfVectors== null){ //If there are no topics then there is nothing to infere
 			return;
 		}
+        Path[] models = getallModelPaths();
 		for(String itemid : tfVectors.keySet()){
-			inferTopics(itemid, tfVectors.get(itemid));
+			inferTopics(models,itemid, tfVectors.get(itemid));
+
 		}
 		try {
             SemanticModel newModel = new SemanticModel(semanticModel.getIndexItem(),semanticModel.getItemIndex(),semanticModel.getItemFeatures(),path,conf);
@@ -141,8 +140,26 @@ public class DocumentTopicInferenceTrainer extends AbstractTrainer{
 			e.printStackTrace();
 		}	
 	}
-	
-	/**
+
+    /**
+     * creates an array of pathes of the topic files
+     * @return
+     */
+    private Path[] getallModelPaths() {
+        File dir = new File(this.conf.getTopicsOutputPath());
+        String[] files = dir.list();
+        ArrayList<Path> validFiles = new ArrayList<Path>();
+        for(String file :files){
+            if(file.contains("part-m") && !file.contains(".crc")){
+                validFiles.add(new Path(this.conf.getTopicsOutputPath() + file));
+            }
+        }
+        Path[] validFilesPaths = new Path[validFiles.size()];
+        validFilesPaths = validFiles.toArray(validFilesPaths);
+        return validFilesPaths;
+    }
+
+    /**
 	 * 
 	 * @return Returns Dictionary
 	 * @throws IOException
