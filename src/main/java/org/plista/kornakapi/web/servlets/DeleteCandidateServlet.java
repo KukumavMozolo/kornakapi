@@ -37,6 +37,9 @@ public class DeleteCandidateServlet extends BaseServlet {
     if(this.storages().containsKey("lda")){
         try{
             this.storages().get("lda").deleteCandidate(label, itemID);
+            if(log.isInfoEnabled()){
+                log.info("Candidate Item {} removed", itemID);
+            }
 
         } catch(NullPointerException e){
             if(log.isInfoEnabled()){
@@ -44,13 +47,17 @@ public class DeleteCandidateServlet extends BaseServlet {
             }
         }
     }
-      try{
-          this.storages().get(label).deleteCandidate(label, itemID);
+    try{
+        this.storages().get(label).deleteCandidate(label, itemID);
+        if(log.isInfoEnabled()){
+            log.info("Candidate Item {} removed", itemID);
+        }
 
-      } catch(NullPointerException e){
-          if(log.isInfoEnabled()){
-              log.info("No Recommender found for label {} and itemID {}", label, itemID );
-          }
+
+    } catch(NullPointerException e){
+      if(log.isInfoEnabled()){
+          log.info("No Recommender found for label {} and itemID {}", label, itemID );
       }
+    }
   }
 }
