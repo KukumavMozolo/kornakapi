@@ -27,7 +27,7 @@ import java.io.IOException;
 
 /** servlet to delete items from a candidate set */
 public class DeleteCandidateServlet extends BaseServlet {
-	  private static final Logger log = LoggerFactory.getLogger(RecommendServlet.class);
+	  private static final Logger log = LoggerFactory.getLogger(DeleteCandidateServlet.class);
 
   @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
