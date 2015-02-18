@@ -35,7 +35,6 @@ import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.apache.hadoop.util.ToolRunner;
 import org.apache.mahout.clustering.lda.cvb.CVB0TopicTermVectorNormalizerMapper;
 import org.apache.mahout.clustering.lda.cvb.CachingCVB0Mapper;
-import org.apache.mahout.clustering.lda.cvb.CachingCVB0PerplexityMapper;
 import org.apache.mahout.common.AbstractJob;
 import org.apache.mahout.common.HadoopUtil;
 import org.apache.mahout.common.Pair;
