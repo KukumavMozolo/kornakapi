@@ -53,7 +53,7 @@ public class LDATopicVectorizer {
     private float testFraction = 0.1f;
     private int numTrainThreads ;
     private int numUpdateThreads;
-    private int maxItersPerDoc = 20;
+    private int maxItersPerDoc = 10;
     private int numReduceTasks = 10;
     private boolean backfillPerplexity = false;
     private int seed = (int) (Math.random() * 302221);
