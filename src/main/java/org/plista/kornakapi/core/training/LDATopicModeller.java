@@ -62,7 +62,7 @@ public class LDATopicModeller extends AbstractTrainer{
         int deletes = removeDublicateArticles(semanticModel);
 
         if(log.isInfoEnabled()){
-            log.info("Deleted " + new Integer(deletes).toString() + " dublicated Articles");
+            log.info("Deleted " + Integer.toString(deletes) + " dublicated Articles");
         }
     }
 

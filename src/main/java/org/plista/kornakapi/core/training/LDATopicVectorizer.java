@@ -28,6 +28,7 @@ import org.apache.hadoop.io.SequenceFile.Reader;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.mahout.cf.taste.common.TasteException;
+import org.apache.mahout.clustering.lda.cvb.CVB0Driver;
 import org.apache.mahout.math.Vector;
 import org.apache.mahout.math.VectorWritable;
 import org.plista.kornakapi.core.config.LDARecommenderConfig;
