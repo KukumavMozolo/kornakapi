@@ -79,8 +79,7 @@ public class LDATopicRecommender extends AbstractRecommender implements Kornakap
 			v = model.getItemFeatures(itemID.toString());
 			return  currentFeatures.dot(v);
 		} catch (NoSuchItemException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+
 		}
 		return (double)0;
     }
