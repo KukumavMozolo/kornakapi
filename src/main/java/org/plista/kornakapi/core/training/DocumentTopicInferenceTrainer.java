@@ -121,8 +121,14 @@ public class DocumentTopicInferenceTrainer extends AbstractTrainer{
 	private void inferTopicsForItems(){
 		HashMap<String, Vector> tfVectors = createVectorsFromDir();
 		if(tfVectors== null){ //If there are no topics then there is nothing to infere
+            if(log.isInfoEnabled()){
+                log.info("tfVectors is null, exiting");
+            }
 			return;
 		}
+        if(log.isInfoEnabled()){
+            log.info("Infereing topics for {} Vectors", tfVectors.size());
+        }
         Path[] models = getallModelPaths();
 		for(String itemid : tfVectors.keySet()){
 			inferTopics(models,itemid, tfVectors.get(itemid));
