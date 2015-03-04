@@ -17,6 +17,7 @@
 package org.plista.kornakapi.core.training;
 
 import com.google.common.io.Closeables;
+import org.apache.commons.lang.RandomStringUtils;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
@@ -30,9 +31,8 @@ import org.apache.mahout.math.VectorWritable;
 import org.plista.kornakapi.core.config.LDARecommenderConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.apache.commons.lang.RandomStringUtils;
 
-import java.io.IOException;
+import java.io.*;
 import java.util.HashMap;
 
 /**
@@ -199,13 +199,10 @@ public class SemanticModel{
      * @throws IOException
      */
     private void readKey() throws IOException {
-        Path keyPath = path.suffix("/key.txt");
-        if(fs.exists(keyPath)){
-            Reader reader = new SequenceFile.Reader(fs, keyPath , lconf);
-            IntWritable key = new IntWritable();
-            Text val = new Text();
-            reader.next(key,val);
-            this.key = val.toString();
+        File f = new File(path.suffix("/key.txt").toString());
+        if(f.exists()){
+            BufferedReader reader = new BufferedReader( new FileReader(f));
+            this.key = reader.readLine();
             Closeables.close(reader, false);
             }
        }
@@ -222,14 +219,13 @@ public class SemanticModel{
      * @throws IOException
      */
     private void writeKey(String key) throws IOException {
-        Path keyPath = path.suffix("/key.txt");
-        Writer w = SequenceFile.createWriter(fs,lconf,keyPath, IntWritable.class, Text.class);
-        IntWritable id = new IntWritable();
-        Text val = new Text();
-        id.set(1);
-        val.set(key);
-        w.append(id, val);
-        Closeables.close(w, false);
+        File f = new File(path.suffix("/key.txt").toString());
+        if(f.exists()){
+            f.delete();
+        }
+        BufferedWriter output = new BufferedWriter(new FileWriter(f));
+        output.write(key);
+        output.close();
     }
 
 
