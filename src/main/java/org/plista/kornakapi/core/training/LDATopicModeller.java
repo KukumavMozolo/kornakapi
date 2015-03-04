@@ -77,6 +77,9 @@ public class LDATopicModeller extends AbstractTrainer{
         int deleteCounter = 0;
         for(File file : dir.listFiles()){
             if(itemIndex.containsKey(file.getName())){
+                if(log.isInfoEnabled()){
+                    log.info("Item: {} Removed", file.getName());
+                }
                 file.delete();
                 deleteCounter++;
             }
