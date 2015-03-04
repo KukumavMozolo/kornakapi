@@ -14,6 +14,7 @@
  */
 
 package org.plista.kornakapi.web.servlets;
+
 import org.plista.kornakapi.core.config.LDARecommenderConfig;
 import org.plista.kornakapi.web.Parameters;
 import org.slf4j.Logger;
@@ -22,7 +23,6 @@ import org.slf4j.LoggerFactory;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import java.io.File;
 import java.io.IOException;
 
@@ -45,11 +45,17 @@ public class DeleteArticleServlet extends BaseServlet {
     	File f = new File(path);
     	if(f.exists()){
     		f.delete();
+            if(log.isInfoEnabled()){
+                log.info("Article {} Deleted", new Long(itemID).toString());
+            }
     	}
     	path = ((LDARecommenderConfig) this.getConfiguration().getLDARecommender()).getInferencePath()+ "Documents/" + Long.toString(itemID);
     	f = new File(path);
     	if(f.exists()){
     		f.delete();
+            if(log.isInfoEnabled()){
+                log.info("Article {} Deleted", new Long(itemID).toString());
+            }
     	}	
     } catch(NullPointerException e){
 	  if(log.isInfoEnabled()){
