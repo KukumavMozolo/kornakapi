@@ -62,7 +62,9 @@ public class DocumentTopicInferenceTrainer extends AbstractTrainer{
     protected void doTrain(File targetFile, DataModel inmemoryData,
                            int numProcessors) throws IOException {
         semanticModel.read();
-
+        if(log.isInfoEnabled()){
+            log.info("Model read, starting to create sequence files");
+        }
 
         FromFileVectorizer vectorizer = new FromFileVectorizer(conf);
         boolean succes = false;

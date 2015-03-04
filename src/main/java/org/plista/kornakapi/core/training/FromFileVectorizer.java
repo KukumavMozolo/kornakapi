@@ -58,9 +58,15 @@ public class FromFileVectorizer {
             }
             return false;
         }
+        if(log.isInfoEnabled()){
+            log.info("Starting to create Sequence Files");
+        }
 		generateSequneceFiles();
         if(log.isInfoEnabled()){
             log.info("Sequence Files Generated.");
+        }
+        if(log.isInfoEnabled()){
+            log.info("Starting to create Sparse Vectors");
         }
 		generateSparseVectors(false,true,this.conf.getMaxDFSigma(),sequenceFilesPath,sparseVectorOut);
         if(log.isInfoEnabled()){
