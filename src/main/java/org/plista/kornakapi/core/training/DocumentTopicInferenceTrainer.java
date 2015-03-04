@@ -98,7 +98,7 @@ public class DocumentTopicInferenceTrainer extends AbstractTrainer{
                     validFiles);
 			 Vector docTopics = new DenseVector(new double[model.getNumTopics()]).assign(1.0/model.getNumTopics());
 			 Matrix docTopicModel = new SparseRowMatrix(model.getNumTopics(), item.size());
-			 int maxIters = 5000;
+			 int maxIters = 1000;
 		        for(int i = 0; i < maxIters; i++) {
 		            model.trainDocTopicModel(item, docTopics, docTopicModel);
 		        }
