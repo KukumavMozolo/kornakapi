@@ -85,10 +85,10 @@ public class FromFileVectorizer {
         argList.add(DocumentFilesPath.toString());
         argList.add("-o");
         argList.add(sequenceFilesPath.toString());
-        argList.add("-ow");
+//        argList.add("-ow");
         String[] args = argList.toArray(new String[argList.size()]);
         if(log.isInfoEnabled()){
-            log.info("-i {}, io {}",DocumentFilesPath.toString(), sequenceFilesPath.toString() );
+            log.info("-i {}, -o {}",DocumentFilesPath.toString(), sequenceFilesPath.toString() );
         }
         ToolRunner.run(new SequenceFilesFromDirectory(), args);
 
