@@ -126,9 +126,12 @@ public class LDATrainer extends AbstractTrainer{
                     String outputSting = conf.getYarnOutputDir();
                     Path outputDir = new Path(outputSting );
                     FileSystem fileSystem = FileSystem.get(hadoopConf);
-                    if ((fileSystem.exists(outputDir))) {
+                    if (fileSystem.exists(outputDir)) {
                         int idx = outputDir.toString().indexOf("out");
                         Path oldModel = new Path(outputDir.toString().substring(0, idx) + "old");
+                        if(fileSystem.exists(oldModel)){
+                            fileSystem.delete(oldModel);
+                        }
                         fileSystem.rename(outputDir, oldModel);
                     }
                     return null;

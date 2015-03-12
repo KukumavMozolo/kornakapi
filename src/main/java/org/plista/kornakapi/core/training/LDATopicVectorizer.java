@@ -277,8 +277,8 @@ public class LDATopicVectorizer {
                         String oldModel = outputDir.toString().substring(0, idx) + "old";
 
                         fileSystem.copyToLocalFile(new Path(oldModel), dest );
-                        fileSystem.copyToLocalFile(new Path(oldModel + "/docIndex"), new Path(conf.getCVBInputPath() + "/docIndex"));
-                        fileSystem.copyToLocalFile(new Path(oldModel + "/dictionary.file-0"),  new Path(conf.getTopicsDictionaryPath()));
+                        fileSystem.copyToLocalFile(new Path(conf.getYarnInputDir() + "/docIndex"), new Path(conf.getCVBInputPath() + "/docIndex"));
+                        fileSystem.copyToLocalFile(new Path(conf.getYarnInputDir() + "/docIndex"),  new Path(conf.getTopicsDictionaryPath()));
                     } catch (IOException e) {
                         e.printStackTrace();
 
