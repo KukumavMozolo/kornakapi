@@ -32,6 +32,8 @@ import org.apache.mahout.math.Vector;
 import org.apache.mahout.math.VectorWritable;
 import org.plista.kornakapi.core.config.LDARecommenderConfig;
 import org.plista.kornakapi.core.config.RecommenderConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -70,6 +72,7 @@ public class LDATopicVectorizer {
 	private HashMap<Integer,String> indexItem = null;
 	private HashMap<String,Vector> itemFeatures;
 	private HashMap<String,Integer> itemIndex = null;
+    private static final Logger log = LoggerFactory.getLogger(LDATopicVectorizer.class);
 	
 	/**
 	 * 
@@ -309,6 +312,9 @@ public class LDATopicVectorizer {
         SequenceFile.Reader reader = new SequenceFile.Reader(fs,dictionaryPath, conf);
         while (reader.next(key, value)) {
             maxTermId++;
+        }
+        if(log.isInfoEnabled()){
+            log.info("Max Number of terms per topic: " + Integer.toString(maxTermId));
         }
         return maxTermId;
     }
