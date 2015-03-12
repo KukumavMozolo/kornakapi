@@ -276,12 +276,10 @@ public class LDATopicVectorizer {
                     FileUtils.deleteDirectory(new File(dest.toString()));
                     try {
                         Path outputDir = new Path(conf.getYarnOutputDir());
-                        int idx = outputDir.toString().indexOf("out");
-                        String oldModel = outputDir.toString().substring(0, idx) + "old";
 
-                        fileSystem.copyToLocalFile(new Path(oldModel), dest );
-                        fileSystem.copyToLocalFile(new Path(conf.getYarnInputDir() + "/docIndex"), new Path(conf.getCVBInputPath() + "/docIndex"));
-                        fileSystem.copyToLocalFile(new Path(conf.getYarnInputDir() + "/dictionary.file-0"),  new Path(conf.getTopicsDictionaryPath()));
+                        fileSystem.copyToLocalFile(outputDir, dest );
+                        fileSystem.copyToLocalFile(new Path(conf.getYarnOutputDir() + "/docIndex"), new Path(conf.getCVBInputPath() + "/docIndex"));
+                        fileSystem.copyToLocalFile(new Path(conf.getYarnOutputDir() + "/dictionary.file-0"),  new Path(conf.getTopicsDictionaryPath()));
                     } catch (IOException e) {
                         e.printStackTrace();
 

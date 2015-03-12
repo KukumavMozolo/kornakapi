@@ -21,6 +21,7 @@ import com.google.common.io.Closeables;
 import com.google.common.io.Files;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.FileUtil;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.SequenceFile;
@@ -63,6 +64,7 @@ public class LDATrainer extends AbstractTrainer{
             log.info("TFIDF - Sequence Files uploaded to Cluster");
             deleteOldModelOnYarn();
 			new LDATopicModeller(conf).doTrain();
+            copyRelevantFiles();
             log.info("New Model Trained");
 			printTopicWordDistribution(conf, conf.getTopicsOutputPath(), conf.getLdaPrintPath());
             log.info("Topics Printed to " +  conf.getLdaPrintPath());
@@ -74,7 +76,33 @@ public class LDATrainer extends AbstractTrainer{
 		}		
 	}
 
-	protected void exportSequenceFiletoYarm() throws IOException {
+    /**
+     *
+     * @throws IOException
+     */
+    protected void copyRelevantFiles() throws IOException {
+        UserGroupInformation ugi = UserGroupInformation.createRemoteUser(conf.getHadoopUser());
+        try {
+            ugi.doAs(new PrivilegedExceptionAction<Void>() {
+                public Void run() throws Exception {
+                    Configuration hadoopConf = new Configuration(false);
+                    hadoopConf.addResource(new Path(conf.getHadoopConfPath()));
+                    Path inputDir = new Path(conf.getYarnInputDir() );
+                    FileSystem fileSystem = FileSystem.get(hadoopConf);
+                    if (fileSystem.exists(inputDir)) {
+                        FileUtil.copy(fileSystem,new Path(conf.getYarnInputDir() + "/docIndex"),fileSystem,new Path(conf.getYarnOutputDir() + "/docIndex" ),false,hadoopConf);
+                        FileUtil.copy(fileSystem,new Path(conf.getYarnInputDir() + "/dictionary.file-0"),fileSystem,new Path(conf.getYarnOutputDir() +  "/dictionary.file-0" ),false,hadoopConf);
+
+                    }
+                    return null;
+                }
+            });
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    protected void exportSequenceFiletoYarm() throws IOException {
         UserGroupInformation ugi = UserGroupInformation.createRemoteUser(conf.getHadoopUser());
         try {
             ugi.doAs(new PrivilegedExceptionAction<Void>() {
