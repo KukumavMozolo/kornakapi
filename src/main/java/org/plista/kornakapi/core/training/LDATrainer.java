@@ -124,11 +124,12 @@ public class LDATrainer extends AbstractTrainer{
 
 
                     String outputSting = conf.getYarnOutputDir();
-
                     Path outputDir = new Path(outputSting );
                     FileSystem fileSystem = FileSystem.get(hadoopConf);
                     if ((fileSystem.exists(outputDir))) {
-                        fileSystem.delete(outputDir,true);
+                        int idx = outputDir.toString().indexOf("out");
+                        Path oldModel = new Path(outputDir.toString().substring(0, idx) + "old");
+                        fileSystem.rename(outputDir, oldModel);
                     }
                     return null;
                 }
@@ -188,8 +189,6 @@ public class LDATrainer extends AbstractTrainer{
                 argList.add(((LDARecommenderConfig)conf).getTopicsDictionaryPath());
                 argList.add("-sort");
                 argList.add("true");
-                argList.add("-vs");
-                argList.add("50");
                 argList.add("-p");
                 argList.add("true");
 

@@ -65,7 +65,7 @@ public class LDATopicVectorizer {
 	private Integer k;
 	private Double alpha;
 	private Double eta;
-	private Double convergenceDelta = 0.0;
+	private Double convergenceDelta = 0.0001;
 	org.apache.hadoop.conf.Configuration lconf = new org.apache.hadoop.conf.Configuration(); 
 	FileSystem fs;
 	private HashMap<Integer,String> indexItem = null;
@@ -272,9 +272,13 @@ public class LDATopicVectorizer {
                     Path dest = new Path(conf.getTopicsOutputPath());
                     FileUtils.deleteDirectory(new File(dest.toString()));
                     try {
-                        fileSystem.copyToLocalFile(new Path(conf.getYarnOutputDir() ), dest );
-                        fileSystem.copyToLocalFile(new Path(conf.getYarnInputDir() + "/docIndex"), new Path(conf.getCVBInputPath() + "/docIndex"));
-                        fileSystem.copyToLocalFile(new Path(conf.getYarnInputDir() + "/dictionary.file-0"),  new Path(conf.getTopicsDictionaryPath()));
+                        Path outputDir = new Path(conf.getYarnOutputDir());
+                        int idx = outputDir.toString().indexOf("out");
+                        String oldModel = outputDir.toString().substring(0, idx) + "old";
+
+                        fileSystem.copyToLocalFile(new Path(oldModel), dest );
+                        fileSystem.copyToLocalFile(new Path(oldModel + "/docIndex"), new Path(conf.getCVBInputPath() + "/docIndex"));
+                        fileSystem.copyToLocalFile(new Path(oldModel + "/dictionary.file-0"),  new Path(conf.getTopicsDictionaryPath()));
                     } catch (IOException e) {
                         e.printStackTrace();
 
