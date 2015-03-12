@@ -19,7 +19,6 @@ package org.plista.kornakapi.core.training;
 import com.google.common.io.Closeables;
 import org.apache.commons.io.FileUtils;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
@@ -278,7 +277,7 @@ public class LDATopicVectorizer {
 
                         fileSystem.copyToLocalFile(new Path(oldModel), dest );
                         fileSystem.copyToLocalFile(new Path(conf.getYarnInputDir() + "/docIndex"), new Path(conf.getCVBInputPath() + "/docIndex"));
-                        fileSystem.copyToLocalFile(new Path(conf.getYarnInputDir() + "/docIndex"),  new Path(conf.getTopicsDictionaryPath()));
+                        fileSystem.copyToLocalFile(new Path(conf.getYarnInputDir() + "/dictionary.file-0"),  new Path(conf.getTopicsDictionaryPath()));
                     } catch (IOException e) {
                         e.printStackTrace();
 
@@ -306,13 +305,11 @@ public class LDATopicVectorizer {
         FileSystem fs = dictionaryPath.getFileSystem(conf);
         Text key = new Text();
         IntWritable value = new IntWritable();
-        int maxTermId = -1;
-        for (FileStatus stat : fs.globStatus(dictionaryPath)) {
-            SequenceFile.Reader reader = new SequenceFile.Reader(fs, stat.getPath(), conf);
-            while (reader.next(key, value)) {
-                maxTermId = Math.max(maxTermId, value.get());
-            }
+        int maxTermId = 0;
+        SequenceFile.Reader reader = new SequenceFile.Reader(fs,dictionaryPath, conf);
+        while (reader.next(key, value)) {
+            maxTermId++;
         }
-        return maxTermId + 1;
+        return maxTermId;
     }
 }

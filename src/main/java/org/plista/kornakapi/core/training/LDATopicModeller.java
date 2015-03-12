@@ -59,7 +59,15 @@ public class LDATopicModeller extends AbstractTrainer{
         LDATopicVectorizer vectorize = new LDATopicVectorizer(conf);
         SemanticModel semanticModel = vectorize.getModelFromYarn();
         semanticModel.safeMaster();
-        int deletes = removeDublicateArticles(semanticModel);
+        int deletes = 0;
+        try {
+            deletes = removeDublicateArticles(semanticModel);
+
+        } catch (LDAModelTrainingException e) {
+            if(log.isInfoEnabled()){
+                log.info(e.toString());
+            }
+        }
 
         if(log.isInfoEnabled()){
             log.info("Deleted " + Integer.toString(deletes) + " dublicated Articles");
@@ -71,9 +79,12 @@ public class LDATopicModeller extends AbstractTrainer{
      * @param model
      * @return
      */
-    protected int removeDublicateArticles(SemanticModel model){
+    protected int removeDublicateArticles(SemanticModel model) throws LDAModelTrainingException {
         File dir = new File(((LDARecommenderConfig)conf).getTextDirectoryPath());
         HashMap itemIndex = model.getItemIndex();
+        if(itemIndex == null){
+           throw new LDAModelTrainingException("Something bad happend: itemIndex is null");
+        }
         int deleteCounter = 0;
         for(File file : dir.listFiles()){
             if(itemIndex.containsKey(file.getName())){

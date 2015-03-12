@@ -5,7 +5,7 @@ import org.plista.kornakapi.core.training.LDAImporter;
 import org.plista.kornakapi.core.training.LDATrainer;
 
 /**
- * Created by maxweule on 1/21/15.
+ * Created by mw on 1/21/15.
  */
 public class LDATrainerFactory {
 
