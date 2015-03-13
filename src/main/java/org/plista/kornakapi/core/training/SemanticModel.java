@@ -134,11 +134,37 @@ public class SemanticModel{
     public void safeMaster() throws IOException {
         key = RandomStringUtils.random(10);
         writeKey(key);
+        deleteOldModel();
         safe(key);
 
     }
 
-/**
+    private void deleteOldModel() {
+        try {
+            if(fs.exists(path.suffix("/itemFeature.model"))){
+                fs.delete(path.suffix("/itemFeature.model"));
+                if(log.isInfoEnabled()){
+                    log.info("LDA: itemFeature model deleted");
+                }
+            }
+            if(fs.exists(path.suffix("/indexItem.model"))){
+                fs.delete(path.suffix("/indexItem.model"));
+                if(log.isInfoEnabled()){
+                    log.info("LDA: indexItem model deleted");
+                }
+            }
+            if(fs.exists(path.suffix("/itemIndex.model"))){
+                fs.delete(path.suffix("/itemIndex.model"));
+                if(log.isInfoEnabled()){
+                    log.info("LDA: itemIndex model deleted");
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
  * Method to safe the model
  * @throws IOException
  */
@@ -148,7 +174,7 @@ public class SemanticModel{
          */
         if(!this.key.equals(safeKey)){
             if(log.isInfoEnabled()){
-                log.info("Storing model Failed. Modelkey Changed");
+                log.info("LDA: Storing model Failed. Modelkey Changed");
             }
             return;
         }
@@ -270,7 +296,7 @@ public class SemanticModel{
 			Closeables.close(reader, false);
 		}
 		if(log.isInfoEnabled()){
-					log.info("LDA Model Read");
+					log.info("LDA: LDA Model Read");
 		}
 
 	}
