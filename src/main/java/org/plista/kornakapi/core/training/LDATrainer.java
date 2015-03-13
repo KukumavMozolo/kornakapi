@@ -59,17 +59,17 @@ public class LDATrainer extends AbstractTrainer{
 		try {
 
 			new FromDirectoryVectorizer(conf).doTrain();
-            log.info("TFIDF - Sequence Files generated");
+            log.info("LDA: TFIDF - Sequence Files generated");
             exportSequenceFiletoYarm();
-            log.info("TFIDF - Sequence Files uploaded to Cluster");
+            log.info("LDA: TFIDF - Sequence Files uploaded to Cluster");
             deleteOldModelOnYarn();
 			new LDATopicModeller(conf).doTrain();
             copyRelevantFiles();
-            log.info("New Model Trained");
+            log.info("LDA: New Model Trained");
 			printTopicWordDistribution(conf, conf.getTopicsOutputPath(), conf.getLdaPrintPath());
-            log.info("Topics Printed to " +  conf.getLdaPrintPath());
+            log.info("LDA: Topics Printed to " +  conf.getLdaPrintPath());
             DocumentTopicsPrinter();
-            log.info("Document Topics printed to "+  conf.getLdaPrintPath());
+            log.info("LDA: Document Topics printed to "+  conf.getLdaPrintPath());
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

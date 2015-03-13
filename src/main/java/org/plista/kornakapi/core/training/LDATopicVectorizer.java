@@ -66,7 +66,7 @@ public class LDATopicVectorizer {
 	private Integer k;
 	private Double alpha;
 	private Double eta;
-	private Double convergenceDelta = 0.0001;
+	private Double convergenceDelta = 0.000001;
 	org.apache.hadoop.conf.Configuration lconf = new org.apache.hadoop.conf.Configuration(); 
 	FileSystem fs;
 	private HashMap<Integer,String> indexItem = null;
@@ -219,7 +219,6 @@ public class LDATopicVectorizer {
                     int maxIter =Integer.parseInt(conf.getMaxIterations());
                     CVB0Driver driver = new CVB0Driver();
                     int numTerms = getNumTerms(new Path(conf.getTopicsDictionaryPath()));
-                    int numTerms2 = getNumTerms2(new Path(conf.getTopicsDictionaryPath()));
 
                     try {
                         driver.run(hadoopConf, sparseVectorIn.suffix("/matrix"),
@@ -313,27 +312,10 @@ public class LDATopicVectorizer {
             maxTermId++;
         }
         if(log.isInfoEnabled()){
-            log.info("Max Number of terms per topic: " + Integer.toString(maxTermId));
+            log.info("LDA: Max Number of terms per topic: " + Integer.toString(maxTermId));
         }
         reader.close();
         return maxTermId;
     }
 
-
-    private static int getNumTerms2(Path dictionaryPath) throws IOException {
-        Configuration conf = new Configuration();
-        FileSystem fs = dictionaryPath.getFileSystem(conf);
-        HashMap<String,Integer> modelDictionary = new HashMap<String, Integer>();
-        Reader reader = new SequenceFile.Reader(fs,dictionaryPath, conf);
-        Text keyModelDict = new Text();
-        IntWritable valModelDict = new IntWritable();
-        while(reader.next(keyModelDict, valModelDict)){
-            modelDictionary.put(keyModelDict.toString(), Integer.parseInt(valModelDict.toString()));
-        }
-        Closeables.close(reader, false);
-        if(log.isInfoEnabled()){
-            log.info("Max Number of terms per topic: " + Integer.toString(modelDictionary.size()));
-        }
-        return modelDictionary.size();
-    }
 }

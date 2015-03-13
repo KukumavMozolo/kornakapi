@@ -63,7 +63,7 @@ public class DocumentTopicInferenceTrainer extends AbstractTrainer{
                            int numProcessors) throws IOException {
         semanticModel.read();
         if(log.isInfoEnabled()){
-            log.info("Model read, starting to create sequence files");
+            log.info("LDA: Model read, starting to create sequence files");
         }
 
         FromFileVectorizer vectorizer = new FromFileVectorizer(conf);
@@ -73,7 +73,7 @@ public class DocumentTopicInferenceTrainer extends AbstractTrainer{
         } catch (Exception e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
-            log.info("Inference Failed");
+            log.info("LDA: Inference Failed");
         }
         if(succes){
             inferTopicsForItems();
@@ -90,7 +90,7 @@ public class DocumentTopicInferenceTrainer extends AbstractTrainer{
 	private void inferTopics(Path[] validFiles, String itemid, Vector item){
 		if(semanticModel.getItemFeatures().containsKey(itemid)){
             if(log.isInfoEnabled()){
-                log.info("Item {} is already known.", itemid);
+                log.info("LDA: Item {} is already known.", itemid);
             }
 			return;
 		}
@@ -109,7 +109,7 @@ public class DocumentTopicInferenceTrainer extends AbstractTrainer{
             semanticModel.getIndexItem().put(semanticModel.getIndexItem().size() + 1, itemid);
             semanticModel.getItemIndex().put(itemid, semanticModel.getItemIndex().size() + 1);
             if(log.isInfoEnabled()){
-                log.info("Inferred new Feature Vector for item: {}", itemid);
+                log.info("LDA: Inferred new Feature Vector for item: {}", itemid);
             }
 		    
 		} catch (Exception e) {
@@ -124,12 +124,12 @@ public class DocumentTopicInferenceTrainer extends AbstractTrainer{
 		HashMap<String, Vector> tfVectors = createVectorsFromDir();
 		if(tfVectors== null){ //If there are no topics then there is nothing to infere
             if(log.isInfoEnabled()){
-                log.info("tfVectors is null, exiting");
+                log.info("LDA: tfVectors is null, exiting");
             }
 			return;
 		}
         if(log.isInfoEnabled()){
-            log.info("Infereing topics for {} Vectors", tfVectors.size());
+            log.info("LDA: Infereing topics for {} Vectors", tfVectors.size());
         }
         Path[] models = getallModelPaths();
 		for(String itemid : tfVectors.keySet()){
@@ -141,7 +141,7 @@ public class DocumentTopicInferenceTrainer extends AbstractTrainer{
             newModel.getModelKey();
             newModel.safe(safeKey);
             if(log.isInfoEnabled()){
-                log.info("New InferenceModel Created");
+                log.info("LDA: New InferenceModel Created");
             }
 		} catch (IOException e) {
 			// TODO Auto-generated catch block

@@ -24,7 +24,7 @@ public class LDAImporter extends LDATrainer {
                            int numProcessors) throws IOException {
         try {
             new LDATopicModeller(conf).doImport();
-            log.info("New Model Imported");
+            log.info("LDA: New Model Imported");
 
 
             String name = "inference_lda";

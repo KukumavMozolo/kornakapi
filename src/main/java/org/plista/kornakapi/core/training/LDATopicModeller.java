@@ -83,13 +83,13 @@ public class LDATopicModeller extends AbstractTrainer{
         File dir = new File(((LDARecommenderConfig)conf).getTextDirectoryPath());
         HashMap itemIndex = model.getItemIndex();
         if(itemIndex == null){
-           throw new LDAModelTrainingException("Something bad happend: itemIndex is null");
+           throw new LDAModelTrainingException("LDA: Something bad happend: itemIndex is null");
         }
         int deleteCounter = 0;
         for(File file : dir.listFiles()){
             if(itemIndex.containsKey(file.getName())){
                 if(log.isInfoEnabled()){
-                    log.info("Item: {} Removed", file.getName());
+                    log.info("LDA: Item: {} Removed", file.getName());
                 }
                 file.delete();
                 deleteCounter++;

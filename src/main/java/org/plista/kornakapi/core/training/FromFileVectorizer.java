@@ -54,23 +54,23 @@ public class FromFileVectorizer {
         File dir =  new File(DocumentFilesPath.toString());
         if(dir.list().length == 0){
             if(log.isInfoEnabled()){
-                log.info("Directory is empty. There are no new Articles.");
+                log.info("LDA: Directory is empty. There are no new Articles.");
             }
             return false;
         }
         if(log.isInfoEnabled()){
-            log.info("Starting to create Sequence Files");
+            log.info("LDA: Starting to create Sequence Files");
         }
 		generateSequneceFiles();
         if(log.isInfoEnabled()){
-            log.info("Sequence Files Generated.");
+            log.info("LDA: Sequence Files Generated.");
         }
         if(log.isInfoEnabled()){
-            log.info("Starting to create Sparse Vectors");
+            log.info("LDA: Starting to create Sparse Vectors");
         }
 		generateSparseVectors(false,true,this.conf.getMaxDFSigma(),sequenceFilesPath,sparseVectorOut);
         if(log.isInfoEnabled()){
-            log.info("Sparse Vectors Generated.");
+            log.info("LDA: Sparse Vectors Generated.");
         }
         return  true;
 
