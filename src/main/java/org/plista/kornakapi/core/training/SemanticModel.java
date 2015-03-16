@@ -132,6 +132,9 @@ public class SemanticModel{
 	}
 
     public void safeMaster() throws IOException {
+        if(log.isInfoEnabled()){
+            log.info("LDA: Saving new Model");
+        }
         key = RandomStringUtils.random(10);
         writeKey(key);
         deleteOldModel();
@@ -142,19 +145,19 @@ public class SemanticModel{
     private void deleteOldModel() {
         try {
             if(fs.exists(path.suffix("/itemFeature.model"))){
-                fs.delete(path.suffix("/itemFeature.model"));
+                fs.delete(path.suffix("/itemFeature.model"),false);
                 if(log.isInfoEnabled()){
                     log.info("LDA: itemFeature model deleted");
                 }
             }
             if(fs.exists(path.suffix("/indexItem.model"))){
-                fs.delete(path.suffix("/indexItem.model"));
+                fs.delete(path.suffix("/indexItem.model"),false);
                 if(log.isInfoEnabled()){
                     log.info("LDA: indexItem model deleted");
                 }
             }
             if(fs.exists(path.suffix("/itemIndex.model"))){
-                fs.delete(path.suffix("/itemIndex.model"));
+                fs.delete(path.suffix("/itemIndex.model"),false);
                 if(log.isInfoEnabled()){
                     log.info("LDA: itemIndex model deleted");
                 }
@@ -169,12 +172,15 @@ public class SemanticModel{
  * @throws IOException
  */
 	public void safe(String safeKey) throws IOException{
+        if(log.isInfoEnabled()){
+            log.info("LDA: Saving Model");
+        }
         /**
          * New Model training changes the key. Inference can only safe the model if its key is still valid. Thus since inference job start and end no new model was calculated
          */
         if(!this.key.equals(safeKey)){
             if(log.isInfoEnabled()){
-                log.info("LDA: Storing model Failed. Modelkey Changed");
+                log.info("LDA: Saving model Failed. Modelkey Changed");
             }
             return;
         }
@@ -216,7 +222,7 @@ public class SemanticModel{
 			Closeables.close(w, false);
 		}
 		if(log.isInfoEnabled()){
-			log.info("LDA Model Safed");
+			log.info("LDA: Model Safed");
         }
 	}
 

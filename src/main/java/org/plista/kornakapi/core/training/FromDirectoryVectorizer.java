@@ -25,7 +25,11 @@ import org.apache.mahout.utils.vectors.RowIdJob;
 import org.apache.mahout.vectorizer.SparseVectorsFromSequenceFiles;
 import org.plista.kornakapi.core.config.LDARecommenderConfig;
 import org.plista.kornakapi.core.config.RecommenderConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 public class FromDirectoryVectorizer {
@@ -36,6 +40,7 @@ public class FromDirectoryVectorizer {
 	private Path sparseVectorOut;
 	private Path sparseVectorInputPath;
 	private LDARecommenderConfig conf;
+    private static final Logger log = LoggerFactory.getLogger(FromDirectoryVectorizer.class);
 	/**
 	 * 
 	 * @param conf
@@ -51,14 +56,46 @@ public class FromDirectoryVectorizer {
 	}
 
 	protected void doTrain() throws Exception {
+        lockDir();
 		generateSequneceFiles();
+        unlockDir();
 		generateSparseVectors(false,true,this.conf.getMaxDFSigma(),sequenceFilesPath,sparseVectorOut);
 		ensureIntegerKeys(sparseVectorOut.suffix("/tfidf-vectors/part-r-00000"),sparseVectorInputPath);
 
 	}
-	
-	private void generateSequneceFiles(){
-		List<String> argList = Lists.newLinkedList();
+
+    /**
+     * simple unlocking of directory. Communicates to all LDAArticleWriter
+     */
+    private void unlockDir() {
+        File f = new File(DocumentFilesPath.toString() + "lock");
+        if(f.exists()){
+            f.delete();
+        }
+        if(log.isInfoEnabled()){
+            log.info("LDA: Directory unlocked");
+        }
+    }
+
+    /**
+     * simple locking of directory. Communicates to all LDAArticleWriter
+     * Directory needs to be locked to ensure that sequencefiles can be generated since
+     * SequenceFilesFromDirectory does throw an error if an articles is not fully saved on hd
+     */
+    private void lockDir() {
+        File f = new File(DocumentFilesPath.toString() + "lock");
+        try {
+            f.createNewFile();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        if(log.isInfoEnabled()){
+            log.info("LDA: Directory locked");
+        }
+    }
+
+    private void generateSequneceFiles(){
+        List<String> argList = Lists.newLinkedList();
         argList.add("-i");
         argList.add(DocumentFilesPath.toString());
         argList.add("-o");

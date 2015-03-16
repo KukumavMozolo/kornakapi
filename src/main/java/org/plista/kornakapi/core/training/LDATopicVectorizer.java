@@ -66,7 +66,7 @@ public class LDATopicVectorizer {
 	private Integer k;
 	private Double alpha;
 	private Double eta;
-	private Double convergenceDelta = 0.000001;
+	private Double convergenceDelta = 0.0001;
 	org.apache.hadoop.conf.Configuration lconf = new org.apache.hadoop.conf.Configuration(); 
 	FileSystem fs;
 	private HashMap<Integer,String> indexItem = null;

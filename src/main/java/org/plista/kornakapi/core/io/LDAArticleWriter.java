@@ -6,7 +6,10 @@ import org.plista.kornakapi.web.Components;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 
 public class LDAArticleWriter {
 	
@@ -20,13 +23,38 @@ public class LDAArticleWriter {
     	write(documentsPath, pText);
     	
 	}
+
+    /**
+     *
+     * @param filename
+     * @param pText
+     * @throws IOException
+     */
 	private void write(String filename, String pText) throws IOException{
-    	File f = new File(filename);
-    	if(f.exists()){
-    		f.delete();
-    	}
-		BufferedWriter output = new BufferedWriter(new FileWriter(f));
-        output.write(pText);
-        output.close();
+        if(!isLocked(filename.substring(0,filename.lastIndexOf("/")))){
+            File f = new File(filename);
+            if(f.exists()){
+                f.delete();
+            }
+            BufferedWriter output = new BufferedWriter(new FileWriter(f));
+            output.write(pText);
+            output.close();
+        }
+        else if(log.isInfoEnabled()){
+            log.info("LDA: Directory is locked. Cant write article.");
+        }
 	}
+
+    /**
+     * simple check if dierectory is locked
+     * @param path
+     * @return
+     */
+    private boolean isLocked(String path){
+        File f = new File(path+ "lock");
+        if(f.exists()){
+            return  true;
+        }
+        return false;
+    }
 }
