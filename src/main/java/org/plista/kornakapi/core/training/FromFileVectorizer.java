@@ -26,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -61,10 +62,12 @@ public class FromFileVectorizer {
         if(log.isInfoEnabled()){
             log.info("LDA: Starting to create Sequence Files");
         }
+        lockDir();
 		generateSequneceFiles();
         if(log.isInfoEnabled()){
             log.info("LDA: Sequence Files Generated.");
         }
+        unlockDir();
         if(log.isInfoEnabled()){
             log.info("LDA: Starting to create Sparse Vectors");
         }
@@ -75,6 +78,36 @@ public class FromFileVectorizer {
         return  true;
 
 	}
+
+    /**
+     * simple unlocking of directory. Communicates to all LDAArticleWriter
+     */
+    private void unlockDir() {
+        File f = new File(DocumentFilesPath.toString() + "lock");
+        if(f.exists()){
+            f.delete();
+        }
+        if(log.isInfoEnabled()){
+            log.info("LDA: Directory unlocked");
+        }
+    }
+
+    /**
+     * simple locking of directory. Communicates to all LDAArticleWriter
+     * Directory needs to be locked to ensure that sequencefiles can be generated since
+     * SequenceFilesFromDirectory does throw an error if an articles is not fully saved on hd
+     */
+    private void lockDir() {
+        File f = new File(DocumentFilesPath.toString() + "lock");
+        try {
+            f.createNewFile();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        if(log.isInfoEnabled()){
+            log.info("LDA: Directory locked");
+        }
+    }
 	/**
 	 * Generates SequenceFile
 	 * @throws Exception 
