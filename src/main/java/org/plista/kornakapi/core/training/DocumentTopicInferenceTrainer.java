@@ -11,6 +11,7 @@ import org.apache.hadoop.io.SequenceFile.Reader;
 import org.apache.hadoop.io.Text;
 import org.apache.mahout.cf.taste.model.DataModel;
 import org.apache.mahout.clustering.lda.cvb.TopicModel;
+import org.apache.mahout.common.Pair;
 import org.apache.mahout.math.*;
 import org.plista.kornakapi.core.config.LDARecommenderConfig;
 import org.plista.kornakapi.core.config.RecommenderConfig;
@@ -99,17 +100,16 @@ public class DocumentTopicInferenceTrainer extends AbstractTrainer{
 			TopicModel model = new TopicModel(lconf, conf.getEta(), conf.getAlpha(), getDictAsArray(), trainingThreads, modelWeight,
                     validFiles);
 			 Vector docTopics = new DenseVector(new double[model.getNumTopics()]).assign(1.0/model.getNumTopics());
-             for(int i = 0; i< docTopics.size(); i++){
-                docTopics.set(i, 1.0);
-            }
 			 Matrix docTopicModel = new SparseRowMatrix(model.getNumTopics(), item.size());
+             Pair m = model.loadModel(lconf,validFiles);
+             docTopicModel = (Matrix)m.getFirst();
 //			 int maxIters = 5000;
 //		        for(int i = 0; i < maxIters; i++) {
 //		            model.trainDocTopicModel(item, docTopics, docTopicModel);
 //		        }
-            Vector pred = model.infer(item,docTopics);
+            model.trainDocTopicModel(item, docTopics, docTopicModel);
 		    model.stop();
-            semanticModel.getItemFeatures().put(itemid, pred);
+            semanticModel.getItemFeatures().put(itemid, docTopics);
             semanticModel.getIndexItem().put(semanticModel.getIndexItem().size() + 1, itemid);
             semanticModel.getItemIndex().put(itemid, semanticModel.getItemIndex().size() + 1);
             if(log.isInfoEnabled()){
