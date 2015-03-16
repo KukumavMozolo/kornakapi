@@ -99,13 +99,17 @@ public class DocumentTopicInferenceTrainer extends AbstractTrainer{
 			TopicModel model = new TopicModel(lconf, conf.getEta(), conf.getAlpha(), getDictAsArray(), trainingThreads, modelWeight,
                     validFiles);
 			 Vector docTopics = new DenseVector(new double[model.getNumTopics()]).assign(1.0/model.getNumTopics());
+             for(int i = 0; i< docTopics.size(); i++){
+                docTopics.set(i, 1.0);
+            }
 			 Matrix docTopicModel = new SparseRowMatrix(model.getNumTopics(), item.size());
-			 int maxIters = 5000;
-		        for(int i = 0; i < maxIters; i++) {
-		            model.trainDocTopicModel(item, docTopics, docTopicModel);
-		        }
+//			 int maxIters = 5000;
+//		        for(int i = 0; i < maxIters; i++) {
+//		            model.trainDocTopicModel(item, docTopics, docTopicModel);
+//		        }
+            Vector pred = model.infer(item,docTopics);
 		    model.stop();
-            semanticModel.getItemFeatures().put(itemid, docTopics);
+            semanticModel.getItemFeatures().put(itemid, pred);
             semanticModel.getIndexItem().put(semanticModel.getIndexItem().size() + 1, itemid);
             semanticModel.getItemIndex().put(itemid, semanticModel.getItemIndex().size() + 1);
             if(log.isInfoEnabled()){
