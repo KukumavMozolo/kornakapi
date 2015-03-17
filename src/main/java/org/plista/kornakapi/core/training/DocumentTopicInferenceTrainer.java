@@ -11,7 +11,6 @@ import org.apache.hadoop.io.SequenceFile.Reader;
 import org.apache.hadoop.io.Text;
 import org.apache.mahout.cf.taste.model.DataModel;
 import org.apache.mahout.clustering.lda.cvb.TopicModel;
-import org.apache.mahout.common.Pair;
 import org.apache.mahout.math.*;
 import org.plista.kornakapi.core.config.LDARecommenderConfig;
 import org.plista.kornakapi.core.config.RecommenderConfig;
@@ -101,9 +100,7 @@ public class DocumentTopicInferenceTrainer extends AbstractTrainer{
                     validFiles);
 			 Vector docTopics = new DenseVector(new double[model.getNumTopics()]).assign(1.0/model.getNumTopics());
 			 Matrix docTopicModel = new SparseRowMatrix(model.getNumTopics(), item.size());
-             Pair m = model.loadModel(lconf,validFiles);
-             docTopicModel = (Matrix)m.getFirst();
-			 int maxIters = 100;
+			 int maxIters = 5000;
 		        for(int i = 0; i < maxIters; i++) {
 		            model.trainDocTopicModel(item, docTopics, docTopicModel);
 		        }
@@ -195,7 +192,7 @@ public class DocumentTopicInferenceTrainer extends AbstractTrainer{
 	private HashMap<String,Vector> getNewVectors(){
 		HashMap<String, Vector> newVectors = new HashMap<String, Vector>();
 		try {
-			SequenceFile.Reader reader = new SequenceFile.Reader(fs, new Path(conf.getInferencePath() + "sparsein/tfidf-vectors/part-r-00000"), lconf);
+			SequenceFile.Reader reader = new SequenceFile.Reader(fs, new Path(conf.getInferencePath() + "sparsein/tf-vectors/part-r-00000"), lconf);
 			Text key = new Text();
 			VectorWritable val = new VectorWritable();
 			while(reader.next(key, val)){

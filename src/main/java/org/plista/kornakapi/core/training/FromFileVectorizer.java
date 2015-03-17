@@ -71,7 +71,7 @@ public class FromFileVectorizer {
         if(log.isInfoEnabled()){
             log.info("LDA: Starting to create Sparse Vectors");
         }
-		generateSparseVectors(false,true,this.conf.getMaxDFSigma(),sequenceFilesPath,sparseVectorOut);
+		generateSparseVectors(true,true,this.conf.getMaxDFSigma(),sequenceFilesPath,sparseVectorOut);
         if(log.isInfoEnabled()){
             log.info("LDA: Sparse Vectors Generated.");
         }

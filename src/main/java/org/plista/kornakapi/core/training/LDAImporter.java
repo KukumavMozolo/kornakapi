@@ -25,8 +25,6 @@ public class LDAImporter extends LDATrainer {
         try {
             new LDATopicModeller(conf).doImport();
             log.info("LDA: New Model Imported");
-
-
             String name = "inference_lda";
             Components components = Components.instance();
             LDARecommenderConfig conf = (LDARecommenderConfig) components.getConfiguration().getLDARecommender();
