@@ -103,6 +103,10 @@ public class DocumentTopicInferenceTrainer extends AbstractTrainer{
 
             TopicModel model = new TopicModel(hadoopConf, conf.getEta(), conf.getAlpha(), dict, trainingThreads, modelWeight,
                     models);
+            if(log.isInfoEnabled()){
+                log.info("LDA: Model : {}", model.toString());
+            }
+
 			 Vector docTopics = new DenseVector(new double[model.getNumTopics()]).assign(1.0/model.getNumTopics());
 			 Matrix docTopicModel = new SparseRowMatrix(model.getNumTopics(), item.size());
 			 int maxIters = 5000;
