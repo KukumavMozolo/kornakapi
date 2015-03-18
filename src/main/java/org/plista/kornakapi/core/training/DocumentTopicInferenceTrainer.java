@@ -114,7 +114,7 @@ public class DocumentTopicInferenceTrainer extends AbstractTrainer{
             semanticModel.getIndexItem().put(semanticModel.getIndexItem().size() + 1, itemid);
             semanticModel.getItemIndex().put(itemid, semanticModel.getItemIndex().size() + 1);
             if(log.isInfoEnabled()){
-                log.info("LDA: Inferred new Feature Vector for item: {}", itemid);
+                log.info("LDA: Inferred new Feature Vector for item: {}, values: {}", itemid, docTopics.toString());
             }
 		    
 		} catch (Exception e) {
@@ -218,10 +218,11 @@ public class DocumentTopicInferenceTrainer extends AbstractTrainer{
                         long worddf = dfcounter.get(idx);
                         double idf = tfidf.calculate(count, (int) worddf, 0, numberDocs);
                         docTfIdf.set(idx, idf);
-                    } else {
-                        System.out.print(word);
                     }
 
+                }
+                if(log.isInfoEnabled()){
+                    log.info("Created vector for: " + itemId +": " + docTfIdf.toString());
                 }
                 tfVectors.put(itemId, docTfIdf);
             }
