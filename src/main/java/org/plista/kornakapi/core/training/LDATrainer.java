@@ -162,7 +162,7 @@ public class LDATrainer extends AbstractTrainer{
                     FileSystem fileSystem = FileSystem.get(hadoopConf);
                     if (fileSystem.exists(outputDir)) {
                         int idx = outputDir.toString().indexOf("lda");
-                        Path oldModel = new Path(outputDir.toString().substring(0, idx+3) + "old");
+                        Path oldModel = new Path(outputDir.toString().substring(0, idx+4) + "old");
                         if(fileSystem.exists(oldModel)){
                             fileSystem.delete(oldModel);
                         }
