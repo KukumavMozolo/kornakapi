@@ -92,6 +92,7 @@ public class LDATrainer extends AbstractTrainer{
                     if (fileSystem.exists(inputDir)) {
                         FileUtil.copy(fileSystem,new Path(conf.getYarnInputDir() + "/docIndex"),fileSystem,new Path(conf.getYarnOutputDir() + "/docIndex" ),false,hadoopConf);
                         FileUtil.copy(fileSystem,new Path(conf.getYarnInputDir() + "/dictionary.file-0"),fileSystem,new Path(conf.getYarnOutputDir() +  "/dictionary.file-0" ),false,hadoopConf);
+                        FileUtil.copy(fileSystem,new Path(conf.getYarnInputDir() + "/df-count/part-r-00000"),fileSystem,new Path(conf.getYarnOutputDir() +  "/df-count/part-r-00000" ),false,hadoopConf);
 
                     }
                     return null;
@@ -130,6 +131,11 @@ public class LDATrainer extends AbstractTrainer{
                     dst = new Path(dstString + "docIndex");
                     fileSystem.copyFromLocalFile(src,dst);
 
+                    Path dfcountPath = new Path(conf.getSparseVectorOutputPath() + "df-count/part-r-00000");
+                    Path dfcountDestPath = new Path(dstString + "df-count/part-r-00000");
+                    fileSystem.copyFromLocalFile(dfcountPath,dfcountDestPath);
+
+
                     return null;
                 }
             });
@@ -155,8 +161,8 @@ public class LDATrainer extends AbstractTrainer{
                     Path outputDir = new Path(outputSting );
                     FileSystem fileSystem = FileSystem.get(hadoopConf);
                     if (fileSystem.exists(outputDir)) {
-                        int idx = outputDir.toString().indexOf("out");
-                        Path oldModel = new Path(outputDir.toString().substring(0, idx) + "old");
+                        int idx = outputDir.toString().indexOf("lda");
+                        Path oldModel = new Path(outputDir.toString().substring(0, idx+3) + "old");
                         if(fileSystem.exists(oldModel)){
                             fileSystem.delete(oldModel);
                         }

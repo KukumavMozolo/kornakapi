@@ -71,7 +71,7 @@ public class FromFileVectorizer {
         if(log.isInfoEnabled()){
             log.info("LDA: Starting to create Sparse Vectors");
         }
-		generateSparseVectors(true,true,this.conf.getMaxDFSigma(),sequenceFilesPath,sparseVectorOut);
+		generateSparseVectors(false,true,sequenceFilesPath,sparseVectorOut);
         if(log.isInfoEnabled()){
             log.info("LDA: Sparse Vectors Generated.");
         }
@@ -130,12 +130,11 @@ public class FromFileVectorizer {
 	 * 
 	 * @param tfWeighting, either if true tf(unnormalized term-frequency) else TFIDF(normalized through maxFrequncy)
 	 * @param named, if true output Vectors are named
-	 * @param maxDFSigma, Maximum Standard deviation of termfrequency, 
 	 * @param inputPath
 	 * @param outputPath
 	 * @throws Exception
 	 */
-    private void generateSparseVectors (boolean tfWeighting,  boolean named, double maxDFSigma, Path inputPath, Path outputPath) throws Exception {
+    private void generateSparseVectors (boolean tfWeighting,  boolean named, Path inputPath, Path outputPath) throws Exception {
         List<String> argList = Lists.newLinkedList();
         argList.add("-ow");
         argList.add("-i");
@@ -145,10 +144,6 @@ public class FromFileVectorizer {
         argList.add("-seq");
         if (named) {
             argList.add("-nv");
-        }
-        if (maxDFSigma >= 0) {
-            argList.add("--maxDFSigma");
-            argList.add(String.valueOf(maxDFSigma));
         }
         if (tfWeighting) {
             argList.add("--weight");

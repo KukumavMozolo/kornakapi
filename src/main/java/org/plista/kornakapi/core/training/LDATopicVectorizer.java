@@ -279,6 +279,11 @@ public class LDATopicVectorizer {
                         fileSystem.copyToLocalFile(outputDir, dest );
                         fileSystem.copyToLocalFile(new Path(conf.getYarnOutputDir() + "/docIndex"), new Path(conf.getCVBInputPath() + "/docIndex"));
                         fileSystem.copyToLocalFile(new Path(conf.getYarnOutputDir() + "/dictionary.file-0"),  new Path(conf.getTopicsDictionaryPath()));
+
+                        Path dfcountPath = new Path(conf.getSparseVectorOutputPath() + "df-count/part-r-00000");
+                        Path dfcountDestPath = new Path(conf.getYarnOutputDir() + "df-count/part-r-00000");
+                        fileSystem.copyToLocalFile(dfcountDestPath,dfcountPath);
+
                     } catch (IOException e) {
                         e.printStackTrace();
 

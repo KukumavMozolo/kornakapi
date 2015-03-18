@@ -2,16 +2,22 @@
 package org.plista.kornakapi.core.training;
 
 import com.google.common.io.Closeables;
-import com.google.common.io.Files;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.SequenceFile;
 import org.apache.hadoop.io.SequenceFile.Reader;
 import org.apache.hadoop.io.Text;
 import org.apache.mahout.cf.taste.model.DataModel;
 import org.apache.mahout.clustering.lda.cvb.TopicModel;
+import org.apache.mahout.common.Pair;
+import org.apache.mahout.common.StringTuple;
+import org.apache.mahout.common.iterator.sequencefile.SequenceFileIterable;
 import org.apache.mahout.math.*;
+import org.apache.mahout.math.Vector;
+import org.apache.mahout.vectorizer.TFIDF;
 import org.plista.kornakapi.core.config.LDARecommenderConfig;
 import org.plista.kornakapi.core.config.RecommenderConfig;
 import org.slf4j.Logger;
@@ -19,13 +25,12 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.*;
 
 
 public class DocumentTopicInferenceTrainer extends AbstractTrainer{
 	private LDARecommenderConfig conf;
-	org.apache.hadoop.conf.Configuration lconf = new org.apache.hadoop.conf.Configuration(); 
+	org.apache.hadoop.conf.Configuration hadoopConf = new org.apache.hadoop.conf.Configuration();
 	private FileSystem fs;
 	private int modelWeight = 1;
 
@@ -40,7 +45,7 @@ public class DocumentTopicInferenceTrainer extends AbstractTrainer{
 		super(conf);
 		this.conf = (LDARecommenderConfig)conf;
 		try {
-			fs = FileSystem.get(lconf);
+			fs = FileSystem.get(hadoopConf);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -134,7 +139,7 @@ public class DocumentTopicInferenceTrainer extends AbstractTrainer{
         Path[] models = getallModelPaths();
 		try {
             String[] dict = getDictAsArray();
-            TopicModel model = new TopicModel(lconf, conf.getEta(), conf.getAlpha(), dict, trainingThreads, modelWeight,
+            TopicModel model = new TopicModel(hadoopConf, conf.getEta(), conf.getAlpha(), dict, trainingThreads, modelWeight,
                     models);
             for(String itemid : tfVectors.keySet()){
                 inferTopics(model,itemid, tfVectors.get(itemid));
@@ -172,13 +177,13 @@ public class DocumentTopicInferenceTrainer extends AbstractTrainer{
     }
 
     /**
-	 * 
+	 *
 	 * @return Returns Dictionary
 	 * @throws IOException
 	 */
 	private String[] getDictAsArray() throws IOException{
 		ArrayList<String> dict = new ArrayList<String>();
-        Reader reader = new SequenceFile.Reader(fs,new Path(this.conf.getTopicsDictionaryPath()) , lconf);
+        Reader reader = new SequenceFile.Reader(fs,new Path(this.conf.getTopicsDictionaryPath()) , hadoopConf);
         Text keyNewDict = new Text();
         IntWritable newVal = new IntWritable();
         while(reader.next(keyNewDict,newVal)){
@@ -188,119 +193,97 @@ public class DocumentTopicInferenceTrainer extends AbstractTrainer{
         return dict.toArray(new String[dict.size()]);
 	}
 
-    /**
-     *
-     * @return
-     */
-	private HashMap<String,Vector> getNewVectors(){
-		HashMap<String, Vector> newVectors = new HashMap<String, Vector>();
-		try {
-			SequenceFile.Reader reader = new SequenceFile.Reader(fs, new Path(conf.getInferencePath() + "sparsein/tf-vectors/part-r-00000"), lconf);
-			Text key = new Text();
-			VectorWritable val = new VectorWritable();
-			while(reader.next(key, val)){
-				newVectors.put(key.toString().substring(1), val.get());
-			}
-			Closeables.close(reader, false);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return newVectors;
-	}
 
     /**
      *
      * @return
      */
 	private HashMap<String, Vector> createVectorsFromDir() {
-        HashMap<String, Vector> newVectors = getNewVectors();
-		//cleanup(newVectors);
-		ArrayList<String> newDict = null;
-		HashMap<String,Integer> oldDict = null;
-		try {
-			newDict = this.getFileDict();
-			oldDict = getDict();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-        HashMap<String, Vector> tfVectors = new HashMap<String, Vector>();  
-		if(oldDict != null){
-	        for(String key : newVectors.keySet()){
-	        	RandomAccessSparseVector newArticleTF = new RandomAccessSparseVector(oldDict.size());
-	        	Vector val = newVectors.get(key);
-	        	for(int i = 0; i< val.size(); i++){
-					double tf =val.get(i);
-					String ngram = newDict.get(i);
-					if(oldDict.containsKey(ngram)){
-						int idx = oldDict.get(ngram);
-						newArticleTF.set(idx, tf);
-					}
-	        	}
-				tfVectors.put(key, newArticleTF);
-	        }
-		}
-		return tfVectors;
-	}
+        Map<String, Integer> dict = readDictionnary(hadoopConf, new Path(conf.getTopicsDictionaryPath()));
+        Map<Integer, Long> dfcounter = readDocumentFrequency(hadoopConf,new Path(conf.getSparseVectorOutputPath() + "df-count/part-r-00000") );
+        Map<String, HashMap<String,Integer>> newDocument = getNewDocuments(hadoopConf, new Path(conf.getInferencePath() + "sparsein/tokenized-documents/part-m-00000"));
 
+        HashMap<String, Vector> tfVectors = new HashMap<String, Vector>();
+        if(dict!=null && !dict.isEmpty()) {
+            TFIDF tfidf = new TFIDF();
+            int numberDocs = dfcounter.get(-1).intValue();
+            for (Map.Entry<String, HashMap<String, Integer>> doc : newDocument.entrySet()) {
+                String itemId = doc.getKey();
+                HashMap<String, Integer> doctf = doc.getValue();
+                RandomAccessSparseVector docTfIdf = new RandomAccessSparseVector(dict.size());
+                for (Map.Entry<String, Integer> n : doctf.entrySet()) {
+                    String word = n.getKey();
+                    Integer count = n.getValue();
+                    if (dict.containsKey(word)) {
+                        int idx = dict.get(word);
+                        long worddf = dfcounter.get(idx);
+                        double idf = tfidf.calculate(count, (int) worddf, 0, numberDocs);
+                        docTfIdf.set(idx, idf);
+                    } else {
+                        System.out.print(word);
+                    }
 
-    /**
-     *
-     * @return Dictionary as HashMap word as key, integer id as value
-     * @throws IOException
-     */
-	private HashMap<String,Integer> getDict() throws IOException{
-        HashMap<String,Integer> modelDictionary = new HashMap<String, Integer>();
-		Reader reader = new SequenceFile.Reader(fs,new Path(this.conf.getTopicsDictionaryPath()) , lconf);
-		Text keyModelDict = new Text();
-	    IntWritable valModelDict = new IntWritable();
-	    while(reader.next(keyModelDict, valModelDict)){
-	        modelDictionary.put(keyModelDict.toString(), Integer.parseInt(valModelDict.toString()));
-	    }   
-		Closeables.close(reader, false);
-
-    	return modelDictionary;
-
-	} 
-	
-	/*
-	 * 
-	 */
-	private ArrayList<String> getFileDict() throws IOException{
-        ArrayList<String> dict = new ArrayList<String>();
-        Reader reader = new SequenceFile.Reader(fs, new Path(conf.getInferencePath() + "/sparsein/dictionary.file-0"), lconf);
-        Text keyText = new Text();
-        IntWritable valCount = new IntWritable();
-        while(reader.next(keyText,valCount)){
-            dict.add(keyText.toString());
+                }
+                tfVectors.put(itemId, docTfIdf);
+            }
         }
-        Closeables.close(reader, false);
-        return dict;
+        return tfVectors;
 	}
-
-
-
-
 
     /**
      *
-     * @param tfVectors
+     * @param conf
+     * @param dictionnaryPath
+     * @return
      */
-	protected void cleanup(HashMap<String, Vector> tfVectors){
-		for(String key : tfVectors.keySet()){
-			File from = new File(conf.getInferencePath() + "Documents/"+ conf.getTrainingSetName() +"/" + key);
-			File to = new File(conf.getTextDirectoryPath()+ key);
-			try {
-				File newFile = new File(to.toString());
-				if(newFile.exists()){
-					newFile.delete();
-				}
-				Files.copy(from, to);
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-	}
+    private static Map<String, Integer> readDictionnary(Configuration conf, Path dictionnaryPath) {
+        Map<String, Integer> dictionnary = new HashMap<String, Integer>();
+        for (Pair<Text, IntWritable> pair : new SequenceFileIterable<Text, IntWritable>(dictionnaryPath, true, conf)) {
+            dictionnary.put(pair.getFirst().toString(), pair.getSecond().get());
+        }
+        return dictionnary;
+    }
+
+    /**
+     *
+     * @param conf
+     * @param documentFrequencyPath
+     * @return
+     */
+    private static Map<Integer, Long> readDocumentFrequency(Configuration conf, Path documentFrequencyPath) {
+        Map<Integer, Long> documentFrequency = new HashMap<Integer, Long>();
+        for (Pair<IntWritable, LongWritable> pair : new SequenceFileIterable<IntWritable, LongWritable>(documentFrequencyPath, true, conf)) {
+            documentFrequency.put(pair.getFirst().get(), pair.getSecond().get());
+        }
+        return documentFrequency;
+    }
+
+
+    /**
+     * Creates hashMap: <itemId, HashMap: <Word, wordcount>>
+     * @param conf
+     * @param tokenizedDocsPath
+     * @return
+     */
+    private static HashMap<String,HashMap<String,Integer>> getNewDocuments(Configuration conf, Path tokenizedDocsPath) {
+        HashMap<String,HashMap<String,Integer>> idDocumentTF = new HashMap<String, HashMap<String, Integer>>();
+        for (Pair<Text, StringTuple> pair : new SequenceFileIterable<Text, StringTuple>(tokenizedDocsPath, true, conf)) {
+            String itemId = pair.getFirst().toString().substring(1);
+            List<String> words =pair.getSecond().getEntries();
+            List<String> done = new ArrayList<String>();
+            HashMap<String, Integer> docVector = new HashMap<String,Integer>();
+            for(String word : words){
+                if(!done.contains(word)){
+                    int count = Collections.frequency(words, word);
+                    docVector.put(word,count);
+                }
+                done.add(word);
+            }
+            idDocumentTF.put(itemId,docVector);
+
+        }
+        return idDocumentTF;
+    }
+
+
 }

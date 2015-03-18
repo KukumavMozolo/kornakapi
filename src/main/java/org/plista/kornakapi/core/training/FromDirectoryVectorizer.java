@@ -59,8 +59,8 @@ public class FromDirectoryVectorizer {
         lockDir();
 		generateSequneceFiles();
         unlockDir();
-		generateSparseVectors(true,true,this.conf.getMaxDFSigma(),sequenceFilesPath,sparseVectorOut);
-		ensureIntegerKeys(sparseVectorOut.suffix("/tf-vectors/part-r-00000"),sparseVectorInputPath);
+		generateSparseVectors(false,true,this.conf.getMaxDFSigma(),sequenceFilesPath,sparseVectorOut);
+		ensureIntegerKeys(sparseVectorOut.suffix("/tfidf-vectors/part-r-00000"),sparseVectorInputPath);
 
 	}
 
