@@ -103,10 +103,6 @@ public class DocumentTopicInferenceTrainer extends AbstractTrainer{
 
             TopicModel model = new TopicModel(hadoopConf, conf.getEta(), conf.getAlpha(), dict, trainingThreads, modelWeight,
                     models);
-            if(log.isInfoEnabled()){
-                log.info("LDA: Model : {}", models[3].toString());
-            }
-
 			 Vector docTopics = new DenseVector(new double[model.getNumTopics()]).assign(1.0/model.getNumTopics());
 			 Matrix docTopicModel = new SparseRowMatrix(model.getNumTopics(), item.size());
 			 int maxIters = 5000;
@@ -224,9 +220,6 @@ public class DocumentTopicInferenceTrainer extends AbstractTrainer{
                         docTfIdf.set(idx, idf);
                     }
 
-                }
-                if(log.isInfoEnabled()){
-                    log.info("LDA: Created vector for: " + itemId +": " + docTfIdf.toString());
                 }
                 tfVectors.put(itemId, docTfIdf);
             }
