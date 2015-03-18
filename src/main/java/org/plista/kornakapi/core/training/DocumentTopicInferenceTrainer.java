@@ -222,7 +222,7 @@ public class DocumentTopicInferenceTrainer extends AbstractTrainer{
 
                 }
                 if(log.isInfoEnabled()){
-                    log.info("Created vector for: " + itemId +": " + docTfIdf.toString());
+                    log.info("LDA: Created vector for: " + itemId +": " + docTfIdf.toString());
                 }
                 tfVectors.put(itemId, docTfIdf);
             }
