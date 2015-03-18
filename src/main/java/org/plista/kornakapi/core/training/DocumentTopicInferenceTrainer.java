@@ -92,7 +92,7 @@ public class DocumentTopicInferenceTrainer extends AbstractTrainer{
      * @param itemid
      * @param item
      */
-	private void inferTopics(TopicModel model, String itemid, Vector item){
+	private void inferTopics( Path[] models, String itemid, Vector item, String[] dict){
 		if(semanticModel.getItemFeatures().containsKey(itemid)){
             if(log.isInfoEnabled()){
                 log.info("LDA: Item {} is already known.", itemid);
@@ -101,15 +101,15 @@ public class DocumentTopicInferenceTrainer extends AbstractTrainer{
 		}
 		try {
 
-
+            TopicModel model = new TopicModel(hadoopConf, conf.getEta(), conf.getAlpha(), dict, trainingThreads, modelWeight,
+                    models);
 			 Vector docTopics = new DenseVector(new double[model.getNumTopics()]).assign(1.0/model.getNumTopics());
 			 Matrix docTopicModel = new SparseRowMatrix(model.getNumTopics(), item.size());
 			 int maxIters = 5000;
 		        for(int i = 0; i < maxIters; i++) {
 		            model.trainDocTopicModel(item, docTopics, docTopicModel);
 		        }
-
-
+            model.stop();
             semanticModel.getItemFeatures().put(itemid, docTopics);
             semanticModel.getIndexItem().put(semanticModel.getIndexItem().size() + 1, itemid);
             semanticModel.getItemIndex().put(itemid, semanticModel.getItemIndex().size() + 1);
@@ -139,13 +139,12 @@ public class DocumentTopicInferenceTrainer extends AbstractTrainer{
         Path[] models = getallModelPaths();
 		try {
             String[] dict = getDictAsArray();
-            TopicModel model = new TopicModel(hadoopConf, conf.getEta(), conf.getAlpha(), dict, trainingThreads, modelWeight,
-                    models);
+
             for(String itemid : tfVectors.keySet()){
-                inferTopics(model,itemid, tfVectors.get(itemid));
+                inferTopics(models, itemid, tfVectors.get(itemid), dict);
 
             }
-            model.stop();
+
             SemanticModel newModel = new SemanticModel(semanticModel.getIndexItem(),semanticModel.getItemIndex(),semanticModel.getItemFeatures(),path,conf);
             newModel.getModelKey();
             newModel.safe(safeKey);
