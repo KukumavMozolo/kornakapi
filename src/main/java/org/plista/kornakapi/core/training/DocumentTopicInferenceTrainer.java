@@ -200,14 +200,15 @@ public class DocumentTopicInferenceTrainer extends AbstractTrainer{
 	private HashMap<String, Vector> createVectorsFromDir() {
         Map<String, Integer> dict = readDictionnary(hadoopConf, new Path(conf.getTopicsDictionaryPath()));
         Map<Integer, Long> dfcounter = readDocumentFrequency(hadoopConf,new Path(conf.getSparseVectorOutputPath() + "df-count/part-r-00000") );
-        Map<String, HashMap<String,Integer>> newDocument = getNewDocuments(hadoopConf, new Path(conf.getInferencePath() + "sparsein/tokenized-documents/part-m-00000"));
+        Map<Pair<String,Integer>, HashMap<String,Integer>> newDocument = getNewDocuments(hadoopConf, new Path(conf.getInferencePath() + "sparsein/tokenized-documents/part-m-00000"));
 
         HashMap<String, Vector> tfVectors = new HashMap<String, Vector>();
         if(dict!=null && !dict.isEmpty()) {
             TFIDF tfidf = new TFIDF();
             int numberDocs = dfcounter.get(-1).intValue();
-            for (Map.Entry<String, HashMap<String, Integer>> doc : newDocument.entrySet()) {
-                String itemId = doc.getKey();
+            for (Map.Entry<Pair<String,Integer>, HashMap<String, Integer>> doc : newDocument.entrySet()) {
+                String itemId = doc.getKey().getFirst();
+                Integer maxCount = doc.getKey().getSecond();
                 HashMap<String, Integer> doctf = doc.getValue();
                 RandomAccessSparseVector docTfIdf = new RandomAccessSparseVector(dict.size());
                 for (Map.Entry<String, Integer> n : doctf.entrySet()) {
@@ -215,8 +216,8 @@ public class DocumentTopicInferenceTrainer extends AbstractTrainer{
                     Integer count = n.getValue();
                     if (dict.containsKey(word)) {
                         int idx = dict.get(word);
-                        long worddf = dfcounter.get(idx);
-                        double idf = tfidf.calculate(count, (int) worddf, 0, numberDocs);
+                        double worddf = dfcounter.get(idx);
+                        double idf = (double)count/(double)maxCount * Math.log((double)numberDocs/worddf);
                         docTfIdf.set(idx, idf);
                     }
 
@@ -233,7 +234,7 @@ public class DocumentTopicInferenceTrainer extends AbstractTrainer{
      * @param dictionnaryPath
      * @return
      */
-    private static Map<String, Integer> readDictionnary(Configuration conf, Path dictionnaryPath) {
+    private  Map<String, Integer> readDictionnary(Configuration conf, Path dictionnaryPath) {
         Map<String, Integer> dictionnary = new HashMap<String, Integer>();
         for (Pair<Text, IntWritable> pair : new SequenceFileIterable<Text, IntWritable>(dictionnaryPath, true, conf)) {
             dictionnary.put(pair.getFirst().toString(), pair.getSecond().get());
@@ -247,7 +248,7 @@ public class DocumentTopicInferenceTrainer extends AbstractTrainer{
      * @param documentFrequencyPath
      * @return
      */
-    private static Map<Integer, Long> readDocumentFrequency(Configuration conf, Path documentFrequencyPath) {
+    private  Map<Integer, Long> readDocumentFrequency(Configuration conf, Path documentFrequencyPath) {
         Map<Integer, Long> documentFrequency = new HashMap<Integer, Long>();
         for (Pair<IntWritable, LongWritable> pair : new SequenceFileIterable<IntWritable, LongWritable>(documentFrequencyPath, true, conf)) {
             documentFrequency.put(pair.getFirst().get(), pair.getSecond().get());
@@ -262,9 +263,10 @@ public class DocumentTopicInferenceTrainer extends AbstractTrainer{
      * @param tokenizedDocsPath
      * @return
      */
-    private static HashMap<String,HashMap<String,Integer>> getNewDocuments(Configuration conf, Path tokenizedDocsPath) {
-        HashMap<String,HashMap<String,Integer>> idDocumentTF = new HashMap<String, HashMap<String, Integer>>();
+    private HashMap<Pair<String,Integer>,HashMap<String,Integer>> getNewDocuments(Configuration conf, Path tokenizedDocsPath) {
+        HashMap<Pair<String,Integer>,HashMap<String,Integer>> idDocumentTF = new HashMap<Pair<String,Integer>, HashMap<String, Integer>>();
         for (Pair<Text, StringTuple> pair : new SequenceFileIterable<Text, StringTuple>(tokenizedDocsPath, true, conf)) {
+            int maxCount = 0;
             String itemId = pair.getFirst().toString().substring(1);
             List<String> words =pair.getSecond().getEntries();
             List<String> done = new ArrayList<String>();
@@ -273,13 +275,20 @@ public class DocumentTopicInferenceTrainer extends AbstractTrainer{
                 if(!done.contains(word)){
                     int count = Collections.frequency(words, word);
                     docVector.put(word,count);
+                    maxCount = max(maxCount,count);
+
                 }
                 done.add(word);
             }
-            idDocumentTF.put(itemId,docVector);
+            idDocumentTF.put(new Pair<String,Integer>(itemId,maxCount),docVector);
 
         }
         return idDocumentTF;
+    }
+
+    private int max(int a, int b){
+        if(a > b) return a;
+        return b;
     }
 
 
