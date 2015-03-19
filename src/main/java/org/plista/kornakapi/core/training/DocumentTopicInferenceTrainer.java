@@ -99,9 +99,7 @@ public class DocumentTopicInferenceTrainer extends AbstractTrainer{
             }
 			return;
 		}
-        if(log.isInfoEnabled()){
-            log.info("LDA: Item {} has vector{}", itemid, item.toString());
-        }
+
 		try {
 
             TopicModel model = new TopicModel(hadoopConf, conf.getEta(), conf.getAlpha(), dict, trainingThreads, modelWeight,
