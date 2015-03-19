@@ -100,7 +100,7 @@ public class DocumentTopicInferenceTrainer extends AbstractTrainer{
 			return;
 		}
         if(log.isInfoEnabled()){
-            log.info("LDA: Item {} has vector", itemid, item.toString());
+            log.info("LDA: Item {} has vector{}", itemid, item.toString());
         }
 		try {
 
