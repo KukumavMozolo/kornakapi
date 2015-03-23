@@ -63,7 +63,7 @@ public class RecommendServlet extends BaseServlet {
 	    KornakapiRecommender recommender = recommender(recommenderName);
 	    long[] itemIDs = getParameterAsLongArray(request, Parameters.ITEM_IDS);
 		if (log.isInfoEnabled()) {
-			log.info("Get LDA Recommendations from ip: {}for item {}", request.getHeader("X-FORWARDED-FOR"), itemIDs[0]);
+			log.info("Get LDA Recommendations from ip: {} for item {}", getIpAddr(request), itemIDs[0]);
 		}
 	    try {
 			recommendedItems = recommender.recommendToAnonymous(itemIDs, howMany, rescorer);
@@ -213,4 +213,18 @@ public class RecommendServlet extends BaseServlet {
 		e.printStackTrace();
 	}
   }
+
+    public String getIpAddr(HttpServletRequest request) {
+        String ip = request.getHeader("x-forwarded-for");
+        if(ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("Proxy-Client-IP");
+        }
+        if(ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("WL-Proxy-Client-IP");
+        }
+        if(ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getRemoteAddr();
+        }
+        return ip;
+    }
 }
