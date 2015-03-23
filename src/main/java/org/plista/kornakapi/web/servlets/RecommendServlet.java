@@ -35,7 +35,6 @@ import org.slf4j.LoggerFactory;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.List;
@@ -64,7 +63,7 @@ public class RecommendServlet extends BaseServlet {
 	    KornakapiRecommender recommender = recommender(recommenderName);
 	    long[] itemIDs = getParameterAsLongArray(request, Parameters.ITEM_IDS);
 		if (log.isInfoEnabled()) {
-			log.info("Get LDA Recommendations for item {}", itemIDs[0] );
+			log.info("Get LDA Recommendations from ip: {}for item {}", request.getHeader("X-FORWARDED-FOR"), itemIDs[0]);
 		}
 	    try {
 			recommendedItems = recommender.recommendToAnonymous(itemIDs, howMany, rescorer);
