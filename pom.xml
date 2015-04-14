@@ -9,32 +9,21 @@
   <version>1.1</version>
   <packaging>war</packaging>
 
-  <repositories>
-      <repository>
-          <id>project.local</id>
-          <name>project</name>
-          <url>file:/usr/share/external-plista/mahout/integration/target</url>
-          <snapshots>
-              <enabled>true</enabled>
-          </snapshots>
-      </repository>
-  </repositories>
-
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <org.springframework.version>3.1.2.RELEASE</org.springframework.version>
     <org.slf4j.version>1.6.1</org.slf4j.version>
-    <org.apache.mahout.version>1.0-SNAPSHOT</org.apache.mahout.version>
+    <org.apache.mahout.version>0.10.0</org.apache.mahout.version>
     <tomcat.version>6.0.29</tomcat.version>
   </properties>
 
   <dependencies>
-
-    <dependency>
+      <dependency>
       <groupId>org.apache.mahout</groupId>
-      <artifactId>mahout-mrlegacy</artifactId>
+      <artifactId>mahout-mr</artifactId>
       <version>${org.apache.mahout.version}</version>
+
       <exclusions>
         <exclusion>
             <groupId>org.glassfish</groupId>
@@ -50,6 +39,7 @@
          </exclusion>
       </exclusions>
     </dependency>
+
     <dependency>
       <groupId>org.apache.mahout</groupId>
       <artifactId>mahout-integration</artifactId>
