@@ -20,6 +20,7 @@ import org.plista.kornakapi.core.io.LDAArticleWriter;
 import org.plista.kornakapi.core.preprocessing.BadcharFilter;
 import org.plista.kornakapi.core.preprocessing.MinimumWordsFilter;
 import org.plista.kornakapi.core.preprocessing.StopwordFilter;
+import org.plista.kornakapi.core.preprocessing.WordLengthFilter;
 import org.plista.kornakapi.core.training.DocumentTopicInferenceTrainer;
 import org.plista.kornakapi.web.Parameters;
 import org.quartz.SchedulerException;
@@ -68,6 +69,8 @@ public class AddArticleServlet extends BaseServlet {
 
         // save preprocessed text
         String processed = filter.filterText(filter_bc.filterText(text));
+        WordLengthFilter lengthfilter = new WordLengthFilter();
+        processed = lengthfilter.filterText(processed,config.getMinWordlength());
         writer.writeArticle(label, itemID, processed);
 
         this.storages().get("lda").addCandidate(label, itemID);

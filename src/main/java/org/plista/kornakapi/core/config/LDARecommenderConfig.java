@@ -19,6 +19,7 @@ public class LDARecommenderConfig extends RecommenderConfig{
     private String hadoopUser;
     private String hadoopConfPath;
     private boolean LDAMaster;
+    private int minWordlength;
 
     public String getMaxIterations(){
         return Integer.toString(maxIterations);
@@ -114,5 +115,9 @@ public class LDARecommenderConfig extends RecommenderConfig{
 
     public boolean isLDAMaster() {
         return LDAMaster;
+    }
+
+    public int getMinWordlength() {
+        return minWordlength;
     }
 }
