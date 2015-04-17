@@ -14,6 +14,7 @@
  */
 
 package org.plista.kornakapi.web.servlets;
+
 import org.plista.kornakapi.web.Parameters;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,15 +22,19 @@ import org.slf4j.LoggerFactory;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /** servlet to add items to a candidate set */
 public class AddCandidateServlet extends BaseServlet {
 	
 	private static final Logger log = LoggerFactory.getLogger(AddCandidateServlet.class);
+    String[] list = {"35533"};
+    protected List<String> blacklist  = Arrays.asList(list);
 
-  @Override
+    @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
     String label = getParameter(request, Parameters.LABEL, true);
@@ -37,12 +42,14 @@ public class AddCandidateServlet extends BaseServlet {
     if(itemID < 0 || itemID > 2147483647){
     	itemID = this.idRemapping(itemID);
     }
-    try{
-    	this.storages().get(label).addCandidate(label, itemID);
-    } catch(NullPointerException e){
-	  if(log.isInfoEnabled()){
-		  log.info("No Recommender found for label {} and itemID {}", label, itemID );
-	  }
+    if(!blacklist.contains(label)){
+        try{
+            this.storages().get(label).addCandidate(label, itemID);
+        } catch(NullPointerException e){
+            if(log.isInfoEnabled()){
+                log.info("No Recommender found for label {} and itemID {}", label, itemID );
+            }
+        }
     }
   }
 }
