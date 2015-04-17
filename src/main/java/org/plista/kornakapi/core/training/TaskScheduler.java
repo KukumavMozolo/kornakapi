@@ -80,16 +80,23 @@ public class TaskScheduler implements Closeable {
         .build();
     job.getJobDataMap().put(TrainRecommenderJob.RECOMMENDER_NAME_PARAM, recommenderName);
     
-
-    try {
-      if(!scheduler.checkExists(key(recommenderName))){
-            scheduler.addJob(job, true);
+    if(recommenderName.equals("lda")) {
+        try {
+            if (!scheduler.checkExists(key(recommenderName))) {
+                scheduler.addJob(job, true);
+            }
+        } catch (SchedulerException e) {
+            throw new RuntimeException(e);
         }
-    } catch (SchedulerException e) {
-      throw new RuntimeException(e);
+    }else{
+        try {
+                scheduler.addJob(job, true);
+        } catch (SchedulerException e) {
+            throw new RuntimeException(e);
+        }
     }
-
   }
+
     public void overwritingAddRecommenderTrainingJob(String recommenderName) {
         JobDetail job = JobBuilder.newJob(TrainRecommenderJob.class)
                 .withIdentity(key(recommenderName))
