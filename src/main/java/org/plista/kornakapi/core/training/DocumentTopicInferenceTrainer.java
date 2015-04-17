@@ -99,9 +99,6 @@ public class DocumentTopicInferenceTrainer extends AbstractTrainer{
         if(log.isInfoEnabled()){
             log.info("LDA: Inferred new Feature Vector for item: {}, values: {}", itemid, docTopics.toString());
         }
-
-
-
     }
 
 

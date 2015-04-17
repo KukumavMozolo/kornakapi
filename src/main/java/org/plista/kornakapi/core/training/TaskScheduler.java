@@ -115,7 +115,7 @@ public class TaskScheduler implements Closeable {
               isExecuting = true;
           }
       }
-	  if(!isExecuting){
+	  if(!isExecuting && !scheduler.checkExists(triggerkey(recommenderName))){
 		  JobDetail job = scheduler.getJobDetail(key(recommenderName));
 		  Trigger trigger = newTrigger()
 			      .withIdentity(triggerkey(recommenderName))
