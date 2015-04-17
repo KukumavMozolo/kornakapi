@@ -92,23 +92,15 @@ public class DocumentTopicInferenceTrainer extends AbstractTrainer{
             }
             return;
         }
-        TopicModel model = null;
-        try {
-            model = new TopicModel(hadoopConf, conf.getEta(), conf.getAlpha(), dict, trainingThreads, modelWeight,
-                    models);
-
-            Vector docTopics = docTopicModel.times(item).normalize();
-
-            semanticModel.getItemFeatures().put(itemid, docTopics);
-            semanticModel.getIndexItem().put(semanticModel.getIndexItem().size() + 1, itemid);
-            semanticModel.getItemIndex().put(itemid, semanticModel.getItemIndex().size() + 1);
-            if(log.isInfoEnabled()){
-                log.info("LDA: Inferred new Feature Vector for item: {}, values: {}", itemid, docTopics.toString());
-            }
-
-        } catch (IOException e) {
-            e.printStackTrace();
+        Vector docTopics = docTopicModel.times(item).normalize();
+        semanticModel.getItemFeatures().put(itemid, docTopics);
+        semanticModel.getIndexItem().put(semanticModel.getIndexItem().size() + 1, itemid);
+        semanticModel.getItemIndex().put(itemid, semanticModel.getItemIndex().size() + 1);
+        if(log.isInfoEnabled()){
+            log.info("LDA: Inferred new Feature Vector for item: {}, values: {}", itemid, docTopics.toString());
         }
+
+
 
     }
 
