@@ -82,7 +82,9 @@ public class TaskScheduler implements Closeable {
     
 
     try {
-      scheduler.addJob(job, false);
+      if(!scheduler.checkExists(key(recommenderName))){
+            scheduler.addJob(job, true);
+        }
     } catch (SchedulerException e) {
       throw new RuntimeException(e);
     }
