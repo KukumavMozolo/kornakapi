@@ -24,6 +24,7 @@ import org.quartz.spi.ThreadPool;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.List;
 
 import static org.quartz.TriggerBuilder.newTrigger;
 
@@ -75,42 +76,17 @@ public class TaskScheduler implements Closeable {
   }
 
   public void addRecommenderTrainingJob(String recommenderName) {
-    JobDetail job = JobBuilder.newJob(TrainRecommenderJob.class)
-        .withIdentity(key(recommenderName))
-        .build();
-    job.getJobDataMap().put(TrainRecommenderJob.RECOMMENDER_NAME_PARAM, recommenderName);
-    
-    if(recommenderName.equals("lda")) {
-        try {
-            if (!scheduler.checkExists(key(recommenderName))) {
-                scheduler.addJob(job, true);
-            }
-        } catch (SchedulerException e) {
-            throw new RuntimeException(e);
-        }
-    }else{
-        try {
-                scheduler.addJob(job, true);
-        } catch (SchedulerException e) {
-            throw new RuntimeException(e);
-        }
-    }
+      JobDetail job = JobBuilder.newJob(TrainRecommenderJob.class)
+              .withIdentity(key(recommenderName))
+              .build();
+      job.getJobDataMap().put(TrainRecommenderJob.RECOMMENDER_NAME_PARAM, recommenderName);
+      try {
+          scheduler.addJob(job, true);
+      } catch (SchedulerException e) {
+          throw new RuntimeException(e);
+      }
   }
 
-    public void overwritingAddRecommenderTrainingJob(String recommenderName) {
-        JobDetail job = JobBuilder.newJob(TrainRecommenderJob.class)
-                .withIdentity(key(recommenderName))
-                .build();
-        job.getJobDataMap().put(TrainRecommenderJob.RECOMMENDER_NAME_PARAM, recommenderName);
-
-
-        try {
-            scheduler.addJob(job, true);
-        } catch (SchedulerException e) {
-            throw new RuntimeException(e);
-        }
-
-    }
 
   public void addRecommenderTrainingJobWithCronSchedule(String recommenderName, String cronExpression) {
     try {
@@ -131,17 +107,50 @@ public class TaskScheduler implements Closeable {
   }
 
   public void immediatelyTrainRecommender(String recommenderName) throws SchedulerException {
-	  if(!scheduler.checkExists(triggerkey(recommenderName))){
+      boolean isExecuting = false;
+      JobDetail existingJobDetail = scheduler.getJobDetail(key(recommenderName));
+      List<JobExecutionContext> currentlyExecutingJobs = (List<JobExecutionContext>) scheduler.getCurrentlyExecutingJobs();
+      for (JobExecutionContext jec : currentlyExecutingJobs) {
+          if (existingJobDetail.equals(jec.getJobDetail())) {
+              isExecuting = true;
+          }
+      }
+	  if(!isExecuting){
 		  JobDetail job = scheduler.getJobDetail(key(recommenderName));
 		  Trigger trigger = newTrigger()
 			      .withIdentity(triggerkey(recommenderName))
 			      .forJob(job)
-			      .startNow()           
+			      .startNow()
 			      .build();
 		  
 		  scheduler.scheduleJob(trigger);
 	  }
   }
+
+    public void immediatelyInferTopics(String recommenderName) throws SchedulerException {
+        boolean isExecuting = false;
+        boolean isLdaTraining = false;
+        JobDetail existingJobDetail = scheduler.getJobDetail(key(recommenderName));
+        List<JobExecutionContext> currentlyExecutingJobs = (List<JobExecutionContext>) scheduler.getCurrentlyExecutingJobs();
+        for (JobExecutionContext jec : currentlyExecutingJobs) {
+            if (existingJobDetail.equals(jec.getJobDetail())) {
+                isExecuting = true;
+            }
+            if(existingJobDetail.getKey().getName().equals("lda")){
+                isLdaTraining = true;
+            }
+        }
+        if(!isExecuting && !isLdaTraining){
+            JobDetail job = scheduler.getJobDetail(key(recommenderName));
+            Trigger trigger = newTrigger()
+                    .withIdentity(triggerkey(recommenderName))
+                    .forJob(job)
+                    .startNow()
+                    .build();
+
+            scheduler.scheduleJob(trigger);
+        }
+    }
   
   public void immediatelyOptimizeRecommender(String recommenderName) throws SchedulerException {
 	  if(!scheduler.checkExists(triggerkey(recommenderName))){
