@@ -23,7 +23,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -38,11 +37,14 @@ public class AddCandidateServlet extends BaseServlet {
   protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
     String label = getParameter(request, Parameters.LABEL, true);
+    if(blacklist.contains(label)){
+        return;
+    }
+
     long itemID = getParameterAsLong(request, Parameters.ITEM_ID, true);
     if(itemID < 0 || itemID > 2147483647){
     	itemID = this.idRemapping(itemID);
     }
-    if(!blacklist.contains(label)){
         try{
             this.storages().get(label).addCandidate(label, itemID);
         } catch(NullPointerException e){
@@ -50,6 +52,5 @@ public class AddCandidateServlet extends BaseServlet {
                 log.info("No Recommender found for label {} and itemID {}", label, itemID );
             }
         }
-    }
   }
 }
