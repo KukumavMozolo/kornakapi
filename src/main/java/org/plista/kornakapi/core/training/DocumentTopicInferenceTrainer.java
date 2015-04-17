@@ -164,7 +164,7 @@ public class DocumentTopicInferenceTrainer extends AbstractTrainer{
                 pseudoInferTopics(docTopicModel,models, itemid, tfVectors.get(itemid), dict);
 
             }
-
+            model.stop();
             SemanticModel newModel = new SemanticModel(semanticModel.getIndexItem(),semanticModel.getItemIndex(),semanticModel.getItemFeatures(),path,conf);
             newModel.getModelKey();
             newModel.safe(safeKey);
