@@ -98,7 +98,7 @@ public class DocumentTopicInferenceTrainer extends AbstractTrainer{
                     models);
             Pair m = model.loadModel(hadoopConf,models);
             Matrix docTopicModel = (Matrix)m.getFirst();
-            Vector docTopics = docTopicModel.times(item);
+            Vector docTopics = docTopicModel.times(item).normalize();
 
             semanticModel.getItemFeatures().put(itemid, docTopics);
             semanticModel.getIndexItem().put(semanticModel.getIndexItem().size() + 1, itemid);
