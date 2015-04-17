@@ -16,25 +16,16 @@
 package org.plista.kornakapi.core.training;
 
 import org.plista.kornakapi.core.optimizer.OptimizeRecommenderJob;
-import org.quartz.CronScheduleBuilder;
-import org.quartz.CronTrigger;
-import org.quartz.JobBuilder;
-import org.quartz.JobDetail;
-import org.quartz.JobKey;
-import org.quartz.Scheduler;
-import org.quartz.SchedulerException;
-import org.quartz.Trigger;
-import org.quartz.TriggerBuilder;
-import org.quartz.TriggerKey;
+import org.quartz.*;
 import org.quartz.impl.DirectSchedulerFactory;
 import org.quartz.simpl.RAMJobStore;
 import org.quartz.simpl.SimpleThreadPool;
 import org.quartz.spi.ThreadPool;
 
-import static org.quartz.TriggerBuilder.*;
-
 import java.io.Closeable;
 import java.io.IOException;
+
+import static org.quartz.TriggerBuilder.newTrigger;
 
 /** a class to schedule the training of recommenders & purging of preferences */
 public class TaskScheduler implements Closeable {
@@ -91,7 +82,7 @@ public class TaskScheduler implements Closeable {
     
 
     try {
-      scheduler.addJob(job, true);
+      scheduler.addJob(job, false);
     } catch (SchedulerException e) {
       throw new RuntimeException(e);
     }
