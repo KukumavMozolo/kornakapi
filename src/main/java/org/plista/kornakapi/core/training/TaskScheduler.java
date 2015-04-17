@@ -139,7 +139,7 @@ public class TaskScheduler implements Closeable {
 			      .startNow()           
 			      .build();
 		  
-		  scheduler.scheduleJob(trigger); 
+		  scheduler.scheduleJob(trigger);
 	  }
   }
   

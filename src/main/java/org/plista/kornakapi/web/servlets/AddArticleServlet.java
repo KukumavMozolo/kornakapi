@@ -23,7 +23,6 @@ import org.plista.kornakapi.core.preprocessing.StopwordFilter;
 import org.plista.kornakapi.core.preprocessing.WordLengthFilter;
 import org.plista.kornakapi.core.training.DocumentTopicInferenceTrainer;
 import org.plista.kornakapi.web.Parameters;
-import org.quartz.SchedulerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -89,29 +88,7 @@ public class AddArticleServlet extends BaseServlet {
     }
   }
 
-    /**
-     *
-     * @param label
-     * @param itemid
-     */
-  private void topicInferenceForItem(String label, String itemid){
-	  String name = itemid+ "_lda";
-	  LDARecommenderConfig conf = (LDARecommenderConfig) this.getConfiguration().getLDARecommender();
-	  Path p = new Path(conf.getLDARecommenderModelPath());
-	  DocumentTopicInferenceTrainer trainer = new DocumentTopicInferenceTrainer(conf, p);
-	  this.setTrainer(name, trainer);
-      scheduler().addRecommenderTrainingJob(name);
-      try {
-		scheduler().immediatelyTrainRecommender(name);
-//		this.storages().get("0").addCandidate(label, Long.parseLong(itemid));
-	} catch (SchedulerException e) {
-		// TODO Auto-generated catch block
-		e.printStackTrace();
-	} catch (NumberFormatException e) {
-		// TODO Auto-generated catch block
-		e.printStackTrace();
-	}
-  }
+
   
   /**
    * This methods tries to create a new job that performs topicInference for new articles
@@ -124,11 +101,11 @@ public class AddArticleServlet extends BaseServlet {
 	  DocumentTopicInferenceTrainer trainer = new DocumentTopicInferenceTrainer(conf, p);
 	  this.setTrainer(name, trainer);
       scheduler().addRecommenderTrainingJob(name);
-      try {
-		scheduler().immediatelyTrainRecommender(name);
-	} catch (SchedulerException e) {
-		// TODO Auto-generated catch block
-		e.printStackTrace();
-	}
+//      try {
+//		    scheduler().immediatelyTrainRecommender(name);
+//	} catch (SchedulerException e) {
+//		// TODO Auto-generated catch block
+//		e.printStackTrace();
+//	}
   }
 }
