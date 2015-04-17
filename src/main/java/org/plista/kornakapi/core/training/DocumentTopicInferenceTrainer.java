@@ -85,6 +85,33 @@ public class DocumentTopicInferenceTrainer extends AbstractTrainer{
         }
 
     }
+    private void pseudoInferTopics(Path[] models, String itemid, Vector item, String[] dict){
+        if(semanticModel.getItemFeatures().containsKey(itemid)){
+            if(log.isInfoEnabled()){
+                log.info("LDA: Item {} is already known.", itemid);
+            }
+            return;
+        }
+        TopicModel model = null;
+        try {
+            model = new TopicModel(hadoopConf, conf.getEta(), conf.getAlpha(), dict, trainingThreads, modelWeight,
+                    models);
+            Pair m = model.loadModel(hadoopConf,models);
+            Matrix docTopicModel = (Matrix)m.getFirst();
+            Vector docTopics = docTopicModel.times(item);
+
+            semanticModel.getItemFeatures().put(itemid, docTopics);
+            semanticModel.getIndexItem().put(semanticModel.getIndexItem().size() + 1, itemid);
+            semanticModel.getItemIndex().put(itemid, semanticModel.getItemIndex().size() + 1);
+            if(log.isInfoEnabled()){
+                log.info("LDA: Inferred new Feature Vector for item: {}, values: {}", itemid, docTopics.toString());
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
 
 
     /**
@@ -142,7 +169,7 @@ public class DocumentTopicInferenceTrainer extends AbstractTrainer{
             String[] dict = getDictAsArray();
 
             for(String itemid : tfVectors.keySet()){
-                inferTopics(models, itemid, tfVectors.get(itemid), dict);
+                pseudoInferTopics(models, itemid, tfVectors.get(itemid), dict);
 
             }
 
