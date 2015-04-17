@@ -16,15 +16,12 @@
 package org.plista.kornakapi.web.servlets;
 
 import org.apache.mahout.cf.taste.common.TasteException;
-
 import org.plista.kornakapi.web.Parameters;
 import org.quartz.SchedulerException;
-
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import java.io.IOException;
 
 
@@ -48,7 +45,7 @@ public class TrainServlet extends BaseServlet {
 		}
     }
 	try {
-		scheduler().addRecommenderTrainingJob(recommenderName);
+		scheduler().overwritingAddRecommenderTrainingJob(recommenderName);
 		scheduler().immediatelyTrainRecommender(recommenderName);
 	} catch (SchedulerException e) {
 		e.printStackTrace();

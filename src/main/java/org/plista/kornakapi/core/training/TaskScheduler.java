@@ -88,6 +88,20 @@ public class TaskScheduler implements Closeable {
     }
 
   }
+    public void overwritingAddRecommenderTrainingJob(String recommenderName) {
+        JobDetail job = JobBuilder.newJob(TrainRecommenderJob.class)
+                .withIdentity(key(recommenderName))
+                .build();
+        job.getJobDataMap().put(TrainRecommenderJob.RECOMMENDER_NAME_PARAM, recommenderName);
+
+
+        try {
+            scheduler.addJob(job, true);
+        } catch (SchedulerException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
 
   public void addRecommenderTrainingJobWithCronSchedule(String recommenderName, String cronExpression) {
     try {

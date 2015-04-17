@@ -118,7 +118,7 @@ public class AddArticleServlet extends BaseServlet {
    * All articles in the respective folder will be considered.
    */
   private void topicInferenceForNewItems(){
-	  String name = "inference_lda";
+	  String name = "lda";
 	  LDARecommenderConfig conf = (LDARecommenderConfig) this.getConfiguration().getLDARecommender();
 	  Path p = new Path(conf.getLDARecommenderModelPath());
 	  DocumentTopicInferenceTrainer trainer = new DocumentTopicInferenceTrainer(conf, p);
