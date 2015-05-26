@@ -36,8 +36,8 @@ import org.plista.kornakapi.core.storage.CandidateCacheStorageDecorator;
 import org.plista.kornakapi.core.storage.MySqlMaxPersistentStorage;
 import org.plista.kornakapi.core.storage.MySqlStorage;
 import org.plista.kornakapi.core.storage.SemanticMySqlStorage;
-import org.plista.kornakapi.core.training.*;
 import org.plista.kornakapi.core.training.factory.LDATrainerFactory;
+import org.plista.kornakapi.core.training.*;
 import org.plista.kornakapi.core.training.preferencechanges.DelegatingPreferenceChangeListenerForLabel;
 import org.plista.kornakapi.core.training.preferencechanges.InMemoryPreferenceChangeListener;
 import org.plista.kornakapi.web.Components;
@@ -126,7 +126,6 @@ public class BigBangServletContextListener implements ServletContextListener {
       
       } catch (Exception e) {
      	log.info("Something bad happend: {}" , e.getMessage());
-     	throw new RuntimeException(e);
      }
   }
   
