@@ -152,14 +152,22 @@ public class BigBangServletContextListener implements ServletContextListener {
       for (FactorizationbasedRecommenderConfig factorizationbasedConf : conf.getFactorizationbasedRecommenders()) {
     	  for(String label: labels){
     	  	String name = factorizationbasedConf.getName() +"_"+ label;
-    	    FoldingFactorizationBasedRecommender svdRecommender = ffbrFactory.getRecommender(conf, factorizationbasedConf, persitentDatas.get(label), label, name);
-    	    putRecommender(svdRecommender,  name);
-    	    putTrainer(new FactorizationbasedInMemoryTrainer(factorizationbasedConf), factorizationbasedConf, name, label);
-	        log.info("Created FactorizationBasedRecommender [{}] using [{}] features and [{}] iterations",
-	            new Object[] { name, factorizationbasedConf.getNumberOfFeatures(),
-	                factorizationbasedConf.getNumberOfIterations() });
+            FoldingFactorizationBasedRecommender svdRecommender = null;
+            try {
+                svdRecommender = ffbrFactory.getRecommender(conf, factorizationbasedConf, persitentDatas.get(label), label, name);
+            }catch(Exception e){
+                if(log.isInfoEnabled()){
+                    log.info(e.toString());
+                }
+            }
+            if(svdRecommender != null){
+                putRecommender(svdRecommender,  name);
+                putTrainer(new FactorizationbasedInMemoryTrainer(factorizationbasedConf), factorizationbasedConf, name, label);
+                log.info("Created FactorizationBasedRecommender [{}] using [{}] features and [{}] iterations",
+                        new Object[] { name, factorizationbasedConf.getNumberOfFeatures(),
+                                factorizationbasedConf.getNumberOfIterations() });
+            }
     	  }
-  
       }
       log.info("Setup LDARecommender");
       String name = "lda";
