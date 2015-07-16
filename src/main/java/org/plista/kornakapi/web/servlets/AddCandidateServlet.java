@@ -45,10 +45,6 @@ public class AddCandidateServlet extends BaseServlet {
     if(itemID < 0 || itemID > 2147483647){
     	itemID = this.idRemapping(itemID);
     }
-
-    if(log.isInfoEnabled()){
-        log.info("Adding new item {} to label {}", itemID, label);
-    }
     try{
         this.storages().get(label).addCandidate(label, itemID);
     } catch(NullPointerException e){
