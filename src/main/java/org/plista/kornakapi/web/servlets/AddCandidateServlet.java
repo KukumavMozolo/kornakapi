@@ -41,13 +41,13 @@ public class AddCandidateServlet extends BaseServlet {
         return;
     }
 
-
     long itemID = getParameterAsLong(request, Parameters.ITEM_ID, true);
     if(itemID < 0 || itemID > 2147483647){
     	itemID = this.idRemapping(itemID);
     }
-    if(label.equals("1477") && log.isInfoEnabled()){
-        log.info("Adding {} to label {}", itemID, label);
+
+    if(log.isInfoEnabled()){
+        log.info("Adding new item {} to label {}", itemID, label);
     }
     try{
         this.storages().get(label).addCandidate(label, itemID);
