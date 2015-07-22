@@ -15,6 +15,7 @@
 
 package org.plista.kornakapi.web.servlets;
 
+import org.apache.mahout.cf.taste.common.TasteException;
 import org.plista.kornakapi.web.Parameters;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,6 +45,17 @@ public class AddCandidateServlet extends BaseServlet {
     long itemID = getParameterAsLong(request, Parameters.ITEM_ID, true);
     if(itemID < 0 || itemID > 2147483647){
     	itemID = this.idRemapping(itemID);
+    }
+    if(!storages().containsKey(label)){
+        if (log.isInfoEnabled()) {
+            log.info("No recommender assigned for label {}", label);
+        }
+        try {
+            createRecommenderForLabel(label);
+        } catch (TasteException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
     }
     try{
         this.storages().get(label).addCandidate(label, itemID);
